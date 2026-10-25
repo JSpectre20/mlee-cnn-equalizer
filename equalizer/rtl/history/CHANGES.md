@@ -228,6 +228,17 @@ Verification:
 - `impl_ooc_opt.tcl`: optional 8th argument `postphys` (default 1); the 8-bit builds use 0 to avoid the post-route phys_opt crash. The `part` argument may be "" for the default.
 - Verification: ours_bce_dfe_w8 and _short × LUT/DSP × stall 30, plus DSP stall 0, PASS; ours_bce_w6 (N_FB = 0) PASS; throughput 0.974.
 
+**r8b results (ours_bce_dfe_w8):**
+- **PYNQ-Z2 system (in context):** timing met, FCLK1 200 MHz WNS +0.000 (0 failing of 20,428 endpoints); FCLK0 100 MHz WNS +2.000.
+  - Equalizer 5,405 LUT / 8,658 FF / 43 DSP / 0.206 W; system total 1.635 W.
+  - Overlay: `rtl/bd/proj_ours_bce_dfe_w8_200_dsp1_2clk/overlay/`.
+- **OOC DSP build:** 195.6 MHz (WNS −0.112), 5,444 LUT / 8,834 FF; critical path `i_lane` → `fbsum[i_lane][p]` mux → 22-bit adder → `pos > 0` (9 levels, 5.07 ns).
+- (The first r8b OOC queue failed at once: an empty `''` part argument is dropped by the `.bat` wrapper, shifting `postphys` into `-part`. The part is now always passed explicitly.)
+
+## r8b → r8c (DFE lane select one stage earlier)
+- `dfe_stream.sv`: stage I registers `i_fbs[p] <= fbsum[s_lane][p]` (the taps are static) instead of `i_lane`, so stage A is `c = z + i_fbs[p]` plus the compare (no mux).
+- Verification: ours_bce_dfe_w8 and _short × LUT/DSP × stall 0/30 = 8/8 PASS; ours_bce_w6 (N_FB = 0) PASS; throughput 0.974–0.976.
+
 ## Testbench / script changes made alongside (not part of the RTL snapshots)
 - r5: `tb_cnn_eq.sv` timeout dump no longer prints `jf_count`. `tb_conv1d_unit.sv` gains `DW`/`IN_SIGNED` parameters (macro `UT(i, ic, oc, k, s, aw, dw, sg, ww, last, dsp, ist, ost)`). `impl_ooc_opt.tcl` accepts a snapshot directory as `conv_src`.
 - `tb_cnn_eq.sv`:

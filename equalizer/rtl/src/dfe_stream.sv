@@ -7,7 +7,7 @@
 //
 // Look-ahead so the decision loop is a single 2^N_FB:1 mux of one-bit flags:
 //   fbsum[v][p] = sum_k (p[k] ? +fb[v][k] : -fb[v][k])      registered (taps are static)
-//   stage I:  input register (z, lane, last)
+//   stage I:  input register (z, last) and this lane's fbsum[v][*]
 //   stage A:  cand[p] = z + fbsum[v][p],  pos[p] = (cand[p] > 0)
 //   stage B:  pattern = history of decisions (bit k = d[n-1-k] > 0);  u = cand[pattern];
 //             history <= {history, pos[pattern]}  (reset to all -1 after a frame's last symbol)
@@ -50,15 +50,16 @@ module dfe_stream #(
     assign s_ready = adv;
 
     // stage I: register the input (z arrives through the last layer's FIFO read and lane mux)
+    // and pick this lane's tap sums, so stage A is just one adder and a compare
     logic                 i_v, i_last;
     logic signed [ZW-1:0] i_z;
-    logic [VW-1:0]        i_lane;
+    logic signed [UW-1:0] i_fbs [NP];
     always_ff @(posedge clk) begin
         if (adv) begin
             i_v    <= s_valid;
             i_last <= s_last;
             i_z    <= s_z;
-            i_lane <= s_lane;
+            for (int p = 0; p < NP; p++) i_fbs[p] <= fbsum[s_lane][p];
         end
         if (rst) i_v <= 1'b0;
     end
@@ -73,7 +74,7 @@ module dfe_stream #(
             a_last <= i_last;
             for (int p = 0; p < NP; p++) begin
                 logic signed [UW-1:0] c;
-                c = UW'(i_z) + fbsum[i_lane][p];
+                c = UW'(i_z) + i_fbs[p];
                 cand[p] <= c;
                 pos[p]  <= (c > 0);
             end
