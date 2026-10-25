@@ -13,7 +13,7 @@ This is the single source of truth for project state. Every milestone appends to
   - QAT + integer golden model;
   - SystemVerilog engine + bit-exact full-model testbench (all 5 models PASS, LUT and DSP multipliers) + conv1d_stream unit testbench (16 configurations PASS);
   - Vivado P&R rounds 1-3 on XC7Z020 (best so far 182.3 MHz, ours_bce_w6 LUT, round 2).
-- **Running at the time of writing:** `scripts/run_dfe_stress.py --workers 6` (decision-feedback stress test, I5) -> `results/dfe_stress/results.jsonl` (resumable; rerun the same command to continue). Final engine = RTL r7b; PYNQ-Z2 system timing-closed; overlay frozen in `checkpoints/hw_v1`. Order agreed with the user: DFE -> paper_mse_w8 P&R on the final engine -> power with simulation activity (SAIF) -> on-board run.
+- **Running at the time of writing:** Vivado queue on RTL r8 (`rtl/history/r8`): OOC P&R of ours_bce_dfe_w8 (DSP, LUT) and paper_mse_w8 (DSP, LUT) on the final engine, then the PYNQ-Z2 system rebuild with ours_bce_dfe_w8 (`rtl/bd/proj_ours_bce_dfe_w8_200_dsp1_2clk/`). Saved version before DFE: git tag `v1.0-cnn-200mhz`. Next after the queue: power with simulation activity (SAIF), then the on-board run.
 - **Backups (2026-10-25):** `checkpoints/fp32_v1` (FP32 models + datasets), `checkpoints/quant_v1` (results/quant + rtl/gen, 92 files), `checkpoints/hw_v1` (r7b RTL, sim/syn/bd scripts, overlay .bit/.hwh, final reports, 31 files); all read-only with SHA-256 MANIFEST.json, made by `scripts/freeze_checkpoints.py` / `scripts/freeze_artifacts.py` (refuse to overwrite a tag). Full source + results archive: `../backups/equalizer_src_2026-10-25_1224.zip` (362 files, excludes datasets / Vivado projects / sim work dirs). Version control: the whole `Project/` folder is a git repository, pushed to the **private** GitHub repo https://github.com/JSpectre20/mlee-cnn-equalizer (branch `main`, GitHub account JSpectre20, `gh` CLI at `C:\Program Files\GitHub CLI\gh.exe`, logged in). Ignored (see `../.gitignore`): Vivado projects `rtl/bd/proj_*`, `*.dcp`, sim work dirs, Vivado logs, datasets written under `results/` (the reported ones are frozen in `checkpoints/fp32_v1`), `backups/`. Commit and push at every milestone, and record the commit id in the log below.
 - **Next:**
   1. Record round-4 P&R results (§5.6). Any config within ~0.5 ns of 200 MHz gets one pass with stronger Vivado directives (opt Explore, place ExtraTimingOpt, phys_opt AggressiveExplore post-place and post-route, route AggressiveExplore) as an optional impl_ooc.tcl argument; otherwise lock in the best passing clock. 200 MHz is the paper's clock (on an UltraScale+ VU13P), not a requirement; a PYNQ DMA design typically runs 100-150 MHz.
@@ -182,6 +182,21 @@ All 11 unit tests pass (8 basics + 3 quant).
    - For comparison: the paper's CNN 4.4e-4 at 112.5 MAC; our best CE CNN 2.7e-5 at 121.5 MAC.
    - Physics: the CD power-fading null at 11.1 GHz sits inside the band; feed-forward equalizers can't fill a spectral null, decision feedback can (standard result).
    - Caveats: one simulated link at 24 dB with an ideal MZM and no laser chirp; real lab data (the paper's) may have impairments that feedback can't cancel. A DFE's recursion also limits parallelism: the paper's 40 GBd build runs 200 symbols per clock, which needs a look-ahead/unrolled parallel DFE.
+   - **Full stress test** (`scripts/run_dfe_stress.py`, `results/dfe_stress/`; 1M train / 2M test symbols per condition; CNN = vp4 L4 K9 C3 BCE, best (median) of 3 seeds; all DFE with own decisions):
+
+| Condition | FFE121 | FFE57+DFE2 | CNN | CNN+DFE2 |
+|---|---|---|---|---|
+| 20 km, 20 dB | 2.6e-4 | **0** | 1.8e-5 (5.1e-5) | 6.5e-6 (9.0e-6) |
+| 31.5 km, 14 dB | 2.5e-3 | 2.0e-4 | 5.4e-4 (5.5e-4) | **1.3e-4** (1.6e-4) |
+| 31.5 km, 16 dB | 1.5e-3 | **2.4e-5** | 2.3e-4 (2.4e-4) | 4.6e-5 (7.3e-5) |
+| 31.5 km, 18 dB | 9.1e-4 | **1.0e-6** | 9.9e-5 (1.2e-4) | 1.7e-5 (2.0e-5) |
+| 31.5 km, 20 dB | 6.6e-4 | **0** | 5.7e-5 (6.4e-5) | 1.2e-5 (1.4e-5) |
+| 31.5 km, 22 dB | 5.2e-4 | **0** | 4.2e-5 (4.2e-5) | 8.0e-6 (9.0e-6) |
+| 31.5 km, 24 dB | 4.5e-4 | **0** | 2.9e-5 (6.9e-5) | 3.5e-6 (6.3e-6) |
+| 40 km, 20 dB | 1.7e-3 | 2.0e-3 | 1.5e-3 (1.9e-3) | **5.2e-4** (7.0e-4) |
+| 50 km, 20 dB | 3.3e-3 | 5.7e-3 | 4.7e-3 (4.9e-3) | **3.1e-3** (3.2e-3) |
+
+   - Findings: (1) CNN+DFE2 beats the CNN alone everywhere (1.5-8x). (2) At the paper's operating region (31.5 km, >= 16 dB) and at 20 km a 59-MAC FFE57+DFE2 beats every CNN. (3) The CNN wins where the channel is hard: 40 km (3.3x over the best linear option), 14 dB; at 40-50 km FFE+DFE suffers error propagation and is worse than FFE121 alone. (4) 50 km is beyond this complexity budget for every equalizer. Report framing: the best equalizer depends on the channel; CNN+DFE is the robust choice.
 
 ### 5.4 Quantization (`results/quant/`, `ber_vs_bits.png`)
 - **Setup:** W = A = input bits. PTQ = calibration only. QAT = LSQ, Adam lr 2e-4, 4000 iterations from the frozen FP32 best seed (paper_mse = `vp8_L3_K9_C5_mse_s1`, paper_bce = `..._bce_s1`, ours_mse = `vp4_L4_K9_C3_mse_s2`, ours_bce = `..._bce_s2`). Integer-model BER on the fresh 4M test set.
@@ -208,6 +223,7 @@ All 11 unit tests pass (8 basics + 3 quant).
   - BN folded first.
 - The integer model matches fake-quant decisions above 99.9%. About 0.6% of logits differ by one requant LSB (float32 ties); the integer model is the RTL reference.
 - Files per run: `results/quant/<name>_w<b>/{qat_model.pt, integer_model.pkl, metrics.json}`. **TODO:** freeze the chosen ones into `checkpoints/quant_v1/` (not done yet).
+- **CNN+DFE2 quantization** (`scripts/run_quant_dfe.py`, source `results/dfe_stress/models/snr24_L31.5_cnndfe_s1.pt` (FP32 3.5e-6), QAT 4000 it, teacher-forced feedback; integer taps fb[v][k] = round(fb[k]/out_scale[v]); integer BER with own-decision feedback, frame start d = -1, fresh 4M set): **W6 2.8e-5** (9.5e-4 without feedback), **W7 3.5e-6**, **W8 5.0e-7** (2 errors in 4M; 2.1e-4 without feedback). Feedback needs a precise CNN: at 6 bits the gain is lost. **Chosen for hardware: ours_bce_dfe_w8** = same 8 bits as the paper's CNN, ~1000x lower BER (5.0e-7 vs 4.96e-4) and 44x below our W6 CNN (2.18e-5). Integer taps (W8): [[-1864, -3978], [-1835, -3916], [-1763, -3763], [-1905, -4065]].
 
 ### 5.5 RTL (hand-written SystemVerilog) and verification
 - **Architecture (`conv1d_stream.sv`, per layer):**
@@ -239,6 +255,7 @@ All 11 unit tests pass (8 basics + 3 quant).
   - **Re-run after the requant pipeline change: 11/11 PASS.**
   - After rounds 3-4 (2-stage multipliers, registered credit, jobs-owed counter): all 5 models x stall 0/30 PASS (LUT), 3 models PASS with `-UseDsp 1`, unit TB 16/16 PASS. A deliberately broken copy (owed counter ignoring the stride phase) is caught by the unit TB (TLAST and value mismatches).
   - Throughput 0.981–0.983 samples/cycle unstalled (1024-symbol frames); 0.89 with 64-symbol frames (per-frame flush overhead).
+  - r8 (decision feedback, `dfe_stream.sv`): ours_bce_dfe_w8 + _short x LUT/DSP x stall 0/30 = 8/8 PASS bit-exact; existing models still PASS; deliberately broken copies (no per-frame history reset; swapped tap order) are caught.
 - **Bugs and gotchas:**
   1. Tag valid bits weren't reset; with 11 stages the X outlived the 10-cycle reset and deadlocked the paper's topology. Fixed.
   2. `until` is an SV keyword (renamed `to_next`).
@@ -379,7 +396,7 @@ All 11 unit tests pass (8 basics + 3 quant).
 ## 10. Improvement roadmap (pick 2–3 for depth)
 | ID | Idea | Status |
 |---|---|---|
-| I5 | **Decision feedback.** FFE+DFE as an honest baseline, plus a CNN+DFE hybrid (CE-trained CNN with 1-2 decision-feedback taps; teacher forcing + scheduled sampling). Find where FFE+DFE breaks (SNR 14-24 dB, fiber 20-40 km, ADC 4-8 bit, PAM4) and whether CNN(+DFE) wins there. Hardware: a DFE after the serializer is a few adders (1 symbol/clk is enough on PYNQ); report the parallel-DFE cost at 40 GBd | **Evidence in §5.3 item 7; top priority** |
+| I5 | **Decision feedback.** FFE+DFE as an honest baseline, plus a CNN+DFE hybrid (CE-trained CNN with 1-2 decision-feedback taps; teacher forcing + scheduled sampling). Find where FFE+DFE breaks (SNR 14-24 dB, fiber 20-40 km, ADC 4-8 bit, PAM4) and whether CNN(+DFE) wins there. Hardware: a DFE after the serializer is a few adders (1 symbol/clk is enough on PYNQ); report the parallel-DFE cost at 40 GBd | **Done (model + golden + RTL r8); hardware P&R running.** See §5.3 item 7, §5.4 |
 | I3a | Cross-entropy training (decision-aligned) | **Done, the headline result** |
 | I1 | LUT-native KAN (or LUT-NN) equalizer on raw low-res ADC codes, compiled to LUTs (KANELÉ flow, MIT licence); iso-BER comparison vs the CNN on LUT/FF/DSP/Fmax/power | Novelty partial (see §9): KAN equalizers for IM/DD/PON exist in simulation (Fischer et al., KIT, OFC 2025, arXiv 2411.19631: beats CNN at equal real-multiplication count; suggests LUT of slopes/offsets but no FPGA results). LUT-native KAN on FPGA exists in general (KANELÉ, arXiv 2512.12850), not for equalization. Open: an FPGA LUT-compiled KAN equalizer with an iso-BER hardware comparison. Lower priority than I5 |
 | I2 | ADC ENOB (3–8 bits) × equalizer co-design; ADC power from the Walden FoM, P = FoM·2^ENOB·f_s (Murmann survey); total receiver power vs BER | Next |
@@ -421,3 +438,4 @@ All 11 unit tests pass (8 basics + 3 quant).
 - **2026-10-25:** RTL optimisation passes r5/r6/r7/r7b (see §5.6): DSP build 136 -> 45 DSP at 207 MHz, LUT build -23% LUT. PYNQ-Z2 system built in context with two clocks, timing met at 200 MHz (core) / 100 MHz (DMA); overlay files produced. Vivado silent crashes traced to parallel per-IP synthesis on 8 GB RAM (fixed with global synthesis, one job).
 - **2026-10-25:** Added `eqsim/dfe.py` and `scripts/run_dfe_stress.py` (smoke test: FFE25+DFE2 0 errors on 200k symbols; CNN+DFE trains/evaluates). DFE stress test launched. Froze `checkpoints/quant_v1` and `checkpoints/hw_v1`; source archive `../backups/equalizer_src_2026-10-25_1224.zip`.
 - **2026-10-25:** Initialised git at `Project/` and pushed to the private GitHub repo JSpectre20/mlee-cnn-equalizer (9 commits, head e6463e4). The DFE stress test survived an app restart and kept running.
+- **2026-10-25:** DFE stress test finished (9 conditions; CNN+DFE2 best on hard channels, FFE+DFE best at the paper's operating point). Tagged `v1.0-cnn-200mhz`. CNN+DFE2 QAT: W8 integer BER 5.0e-7 (~1000x below the paper's W8 CNN). RTL r8 adds `dfe_stream.sv`; bit-exact; commit 3223c82. Vivado queue (DFE + paper model on r8, PYNQ-Z2 rebuild) launched.
