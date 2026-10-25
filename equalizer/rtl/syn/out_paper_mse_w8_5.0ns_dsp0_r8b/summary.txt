@@ -1,0 +1,1 @@
+model paper_mse_w8 part xc7z020clg400-1 use_dsp 0 period_ns 5.0 WNS_ns -0.094 fmax_MHz 196.3 conv_src C:/Users/Admin/Documents/Bits/3-1/mlee/Project/equalizer/rtl/history/r8b/conv1d_stream.sv retime 0 postphys 0 flow opt
