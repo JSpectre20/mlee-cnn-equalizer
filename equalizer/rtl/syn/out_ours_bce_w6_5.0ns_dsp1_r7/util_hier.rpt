@@ -1,0 +1,48 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Sun Oct 25 01:36:47 2026
+| Host         : Legion-SJ07 running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -hierarchical_depth 4 -file C:/Users/Admin/Documents/Bits/3-1/mlee/Project/equalizer/rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7/util_hier.rpt
+| Design       : cnn_eq_top
+| Device       : xc7z020clg400-1
+| Speed File   : -1
+| Design State : Routed
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++---------------------------+---------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+|          Instance         |              Module             | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++---------------------------+---------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+| cnn_eq_top                |                           (top) |       3989 |       3868 |      92 |   29 | 6409 |      0 |      0 |         83 |
+|   (cnn_eq_top)            |                           (top) |        492 |        492 |       0 |    0 | 2481 |      0 |      0 |          0 |
+|   u_core                  |                     cnn_eq_core |       3497 |       3376 |      92 |   29 | 3928 |      0 |      0 |         83 |
+|     u_last                |   conv1d_stream__parameterized1 |        799 |        750 |      44 |    5 |  962 |      0 |      0 |         14 |
+|       (u_last)            |   conv1d_stream__parameterized1 |        467 |        462 |       0 |    5 |  741 |      0 |      0 |         14 |
+|       g_lane[0].u_tree    |        add_tree__parameterized4 |        111 |        111 |       0 |    0 |   94 |      0 |      0 |          0 |
+|       g_lane[1].u_tree    |      add_tree__parameterized4_1 |        109 |        109 |       0 |    0 |   93 |      0 |      0 |          0 |
+|       u_out               |       sync_fifo__parameterized0 |         93 |         49 |      44 |    0 |   17 |      0 |      0 |          0 |
+|     g_layer[0].u_conv     |                   conv1d_stream |        603 |        579 |      16 |    8 |  607 |      0 |      0 |         11 |
+|       (g_layer[0].u_conv) |                   conv1d_stream |        392 |        384 |       0 |    8 |  421 |      0 |      0 |         11 |
+|       g_lane[0].u_tree    |        add_tree__parameterized0 |         72 |         72 |       0 |    0 |   79 |      0 |      0 |          0 |
+|       g_lane[1].u_tree    |      add_tree__parameterized0_7 |         83 |         83 |       0 |    0 |   77 |      0 |      0 |          0 |
+|     g_layer[1].u_conv     |   conv1d_stream__parameterized0 |       1042 |       1018 |      16 |    8 | 1169 |      0 |      0 |         29 |
+|       (g_layer[1].u_conv) |   conv1d_stream__parameterized0 |        571 |        563 |       0 |    8 |  730 |      0 |      0 |         29 |
+|       g_lane[0].u_tree    |      add_tree__parameterized2_4 |        212 |        212 |       0 |    0 |  192 |      0 |      0 |          0 |
+|       g_lane[1].u_tree    |      add_tree__parameterized2_5 |        198 |        198 |       0 |    0 |  192 |      0 |      0 |          0 |
+|     g_layer[2].u_conv     | conv1d_stream__parameterized0_0 |       1051 |       1027 |      16 |    8 | 1181 |      0 |      0 |         29 |
+|       (g_layer[2].u_conv) | conv1d_stream__parameterized0_0 |        578 |        570 |       0 |    8 |  742 |      0 |      0 |         29 |
+|       g_lane[0].u_tree    |        add_tree__parameterized2 |        212 |        212 |       0 |    0 |  192 |      0 |      0 |          0 |
+|       g_lane[1].u_tree    |      add_tree__parameterized2_2 |        198 |        198 |       0 |    0 |  192 |      0 |      0 |          0 |
++---------------------------+---------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

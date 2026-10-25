@@ -1,0 +1,44 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Sat Oct 24 20:57:39 2026
+| Host         : Legion-SJ07 running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -hierarchical_depth 4 -file C:/Users/Admin/Documents/Bits/3-1/mlee/Project/equalizer/rtl/syn/out_ours_bce_w6_5.0ns_dsp0/util_hier.rpt
+| Design       : cnn_eq_top
+| Device       : xc7z020clg400-1
+| Speed File   : -1
+| Design State : Routed
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++---------------------------+---------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+|          Instance         |              Module             | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs  | RAMB36 | RAMB18 | DSP Blocks |
++---------------------------+---------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+| cnn_eq_top                |                           (top) |       8552 |       8001 |     520 |   31 | 10431 |      0 |      0 |          3 |
+|   (cnn_eq_top)            |                           (top) |        435 |        435 |       0 |    0 |  2482 |      0 |      0 |          0 |
+|   u_core                  |                     cnn_eq_core |       8117 |       7566 |     520 |   31 |  7949 |      0 |      0 |          3 |
+|     u_last                |   conv1d_stream__parameterized1 |       2412 |       2236 |     172 |    4 |  2319 |      0 |      0 |          0 |
+|       (u_last)            |   conv1d_stream__parameterized1 |       2061 |       2057 |       0 |    4 |  2298 |      0 |      0 |          0 |
+|       u_jobs              |       sync_fifo__parameterized1 |        263 |        135 |     128 |    0 |     4 |      0 |      0 |          0 |
+|       u_out               |       sync_fifo__parameterized2 |         90 |         46 |      44 |    0 |    17 |      0 |      0 |          0 |
+|     g_layer[0].u_conv     |                   conv1d_stream |        997 |        922 |      60 |   15 |   884 |      0 |      0 |          1 |
+|       (g_layer[0].u_conv) |                   conv1d_stream |        824 |        809 |       0 |   15 |   863 |      0 |      0 |          1 |
+|       u_jobs              |                       sync_fifo |        143 |         99 |      44 |    0 |     4 |      0 |      0 |          0 |
+|     g_layer[1].u_conv     |   conv1d_stream__parameterized0 |       2353 |       2203 |     144 |    6 |  2373 |      0 |      0 |          1 |
+|       (g_layer[1].u_conv) |   conv1d_stream__parameterized0 |       2068 |       2062 |       0 |    6 |  2352 |      0 |      0 |          1 |
+|       u_jobs              |     sync_fifo__parameterized1_2 |        249 |        121 |     128 |    0 |     4 |      0 |      0 |          0 |
+|     g_layer[2].u_conv     | conv1d_stream__parameterized0_0 |       2353 |       2203 |     144 |    6 |  2358 |      0 |      0 |          1 |
+|       (g_layer[2].u_conv) | conv1d_stream__parameterized0_0 |       2068 |       2062 |       0 |    6 |  2336 |      0 |      0 |          1 |
+|       u_jobs              |     sync_fifo__parameterized1_1 |        248 |        120 |     128 |    0 |     4 |      0 |      0 |          0 |
++---------------------------+---------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

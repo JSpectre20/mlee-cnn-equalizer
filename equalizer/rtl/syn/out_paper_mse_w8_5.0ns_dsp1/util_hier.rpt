@@ -1,0 +1,43 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Sat Oct 24 21:22:36 2026
+| Host         : Legion-SJ07 running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -hierarchical_depth 4 -file C:/Users/Admin/Documents/Bits/3-1/mlee/Project/equalizer/rtl/syn/out_paper_mse_w8_5.0ns_dsp1/util_hier.rpt
+| Design       : cnn_eq_top
+| Device       : xc7z020clg400-1
+| Speed File   : -1
+| Design State : Routed
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++---------------------------+-------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+|          Instance         |             Module            | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++---------------------------+-------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+| cnn_eq_top                |                         (top) |       5571 |       4773 |     778 |   20 | 9737 |      0 |      0 |        149 |
+|   (cnn_eq_top)            |                         (top) |        912 |        912 |       0 |    0 | 5964 |      0 |      0 |          0 |
+|   u_core                  |                   cnn_eq_core |       4659 |       3861 |     778 |   20 | 3773 |      0 |      0 |        149 |
+|     u_last                | conv1d_stream__parameterized1 |       2123 |       1733 |     386 |    4 | 1521 |      0 |      0 |         67 |
+|       (u_last)            | conv1d_stream__parameterized1 |       1229 |       1225 |       0 |    4 | 1473 |      0 |      0 |         67 |
+|       u_jobs              |     sync_fifo__parameterized1 |        683 |        411 |     272 |    0 |   31 |      0 |      0 |          0 |
+|       u_out               |     sync_fifo__parameterized2 |        212 |         98 |     114 |    0 |   17 |      0 |      0 |          0 |
+|     g_layer[0].u_conv     |                 conv1d_stream |        715 |        619 |      88 |    8 |  541 |      0 |      0 |         14 |
+|       (g_layer[0].u_conv) |                 conv1d_stream |        471 |        463 |       0 |    8 |  520 |      0 |      0 |         14 |
+|       u_jobs              |                     sync_fifo |        174 |        118 |      56 |    0 |    4 |      0 |      0 |          0 |
+|       u_out               |   sync_fifo__parameterized0_1 |         71 |         39 |      32 |    0 |   17 |      0 |      0 |          0 |
+|     g_layer[1].u_conv     | conv1d_stream__parameterized0 |       1808 |       1496 |     304 |    8 | 1694 |      0 |      0 |         68 |
+|       (g_layer[1].u_conv) | conv1d_stream__parameterized0 |       1278 |       1270 |       0 |    8 | 1663 |      0 |      0 |         68 |
+|       u_jobs              |   sync_fifo__parameterized1_0 |        472 |        200 |     272 |    0 |   14 |      0 |      0 |          0 |
+|       u_out               |     sync_fifo__parameterized0 |         61 |         29 |      32 |    0 |   17 |      0 |      0 |          0 |
++---------------------------+-------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+
