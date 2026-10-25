@@ -15,4 +15,6 @@ package cnn_eq_pkg;
     localparam int B_OFF [L]    = '{27, 117, 207, 324};
     localparam int M_OFF [L]    = '{30, 120, 210, 0};
     localparam int S_OFF [L]    = '{33, 123, 213, 0};
+    localparam int N_FB    = 0;        // decision-feedback taps (0 = none)
+    localparam int FB_OFF  = 328;
 endpackage

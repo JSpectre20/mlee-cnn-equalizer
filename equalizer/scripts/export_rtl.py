@@ -53,6 +53,10 @@ def build_param_image(im):
         else:
             offs["M"].append(0)
             offs["S"].append(0)
+    fb = getattr(im, "fb", None)
+    offs["FB"] = len(words)
+    if fb is not None:
+        words += [int(v) for v in fb.reshape(-1)]             # (v * N_FB + k)
     return [w & 0xFFFF_FFFF for w in words], offs
 
 
@@ -76,7 +80,11 @@ def main():
     assert all(oc == C for oc, _ in layer_shapes(im)[:-1]) and im.W[-1].shape[0] == vp
 
     wc = worst_case_bits(im)
+    fb = getattr(im, "fb", None)
+    n_fb = 0 if fb is None else fb.shape[1]
     acc_w = max(16, max(wc))
+    if fb is not None:  # taps are stored in ACC_W bits; u = z + sum fb needs ACC_W + N_FB bits (dfe_stream UW)
+        acc_w = max(acc_w, int(np.abs(fb).max()).bit_length() + 1)
     words, offs = build_param_image(im)
     assert all(int(v).bit_length() < acc_w for b in im.bias for v in np.abs(b))
     assert all(np.all((m > 0) & (m < 2 ** 16)) for m in im.M) and all(np.all((s >= 1) & (s <= 40)) for s in im.S)
@@ -100,6 +108,8 @@ package cnn_eq_pkg;
     localparam int B_OFF [L]    = {sv_array(offs['B'])};
     localparam int M_OFF [L]    = {sv_array(offs['M'])};
     localparam int S_OFF [L]    = {sv_array(offs['S'])};
+    localparam int N_FB    = {n_fb};        // decision-feedback taps (0 = none)
+    localparam int FB_OFF  = {offs['FB']};
 endpackage
 """
     (d / "cnn_eq_pkg.sv").write_text(pkg)
@@ -125,7 +135,8 @@ endpackage
         f"localparam int TB_FRAME_SAMPLES = {n_s * nos};\n")
     meta = {"name": args.name, "source": str(args.model), "L": L, "K": K, "C": C, "VP": vp, "NOS": nos,
             "B_IN": im.in_bits, "B_W": im.w_bits, "B_A": im.a_bits, "ACC_W": acc_w, "worst_case_acc_bits": wc,
-            "N_PARAM": len(words), "offsets": offs, "s_in": im.s_in, "test_frames": args.frames,
+            "N_PARAM": len(words), "offsets": offs, "N_FB": n_fb, "fb": None if fb is None else fb.tolist(),
+            "s_in": im.s_in, "test_frames": args.frames,
             "frame_symbols": n_s, "test_bit_errors_excl_edges": errs,
             "test_bits_excl_edges": args.frames * (n_s - 64)}
     (d / "meta.json").write_text(json.dumps(meta, indent=2))

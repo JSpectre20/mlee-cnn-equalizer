@@ -181,6 +181,44 @@ Build history:
    - **Power (vectorless):** 1.58 W total, of which PS7 1.26 W and equalizer 0.155 W.
    - Overlay: `rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/overlay/cnn_eq.{bit,hwh}`.
 
+## r7b → r8 (decision feedback, improvement I5)
+New file `dfe_stream.sv`, a decision-feedback block on the serialized output.
+- **Arithmetic:** u[n] = z[n] + Σ_k fb[v][k]·d[n-1-k], v = n mod VP; d = +1 if u > 0 else −1; d = −1 before every frame (`eqsim.quant.dfe_int`).
+- **Look-ahead:**
+  - `fbsum[v][p]` = Σ ±fb[v][k] for all 2^N_FB sign patterns, registered (taps are static);
+  - stage A: `cand[p] = z + fbsum[v][p]`, `pos[p] = cand[p] > 0`;
+  - stage B: `u = cand[hist]`, `hist <= {hist, pos[hist]}`, reset to all −1 after a frame's last symbol.
+  - So the decision loop is one 2^N_FB:1 mux of 1-bit flags. Both stages advance when the output register is free (1 symbol/clk).
+- Output width UW = max(ZW, FW) + N_FB.
+
+`cnn_eq_core.sv`:
+- The serializer drives `ser_valid / ser_ready / ser_last` and the lane index `v`.
+- For `N_FB > 0`, `g_dfe` reads the taps from pmem (`FB_OFF + v·N_FB + k`, ACC_W bits) and instantiates `dfe_stream`; otherwise `g_nodfe` passes the stream through.
+- Saturation to int16 is now a function `sat16` (same rule).
+
+Package / converter (`scripts/export_rtl.py`):
+- every package now has `N_FB` (0 = no feedback) and `FB_OFF`; the taps are appended after the last layer's bias;
+- ACC_W also covers the taps; `meta.json` lists them.
+- Re-exporting the existing models changed only `cnn_eq_pkg.sv` (+N_FB = 0, +FB_OFF) and `meta.json`; all `params.mem` and test vectors are byte-identical.
+
+Golden model / QAT:
+- `eqsim/quant.py` gains `IntegerModel.fb`, `dfe_int`, `QuantCNNDFE`, `export_integer_dfe`;
+- new `scripts/run_quant_dfe.py`; integer BER on the fresh 4M set with own-decision feedback:
+
+  | Bits | QAT BER | Without feedback |
+  |---|---|---|
+  | W6 | 2.8e-5 | 9.5e-4 |
+  | W7 | 3.5e-6 | |
+  | **W8 (chosen)** | **5.0e-7** | 2.1e-4 |
+
+  (vs ours_bce_w6 CNN 2.18e-5 and paper_mse_w8 4.96e-4.)
+
+Verification:
+- `ours_bce_dfe_w8` and `ours_bce_dfe_w8_short` (8 frames, i.e. 8 history resets) × LUT/DSP × stall 0/30: 8/8 PASS; throughput 0.974–0.976;
+- existing models (N_FB = 0) still PASS (ours_bce_w6, paper_mse_w8, ours_bce_w6_short × LUT/DSP, stall 30);
+- two deliberately broken copies are caught: no history reset at frame end (mismatches exactly at the frame starts, out[64], out[128]) and swapped tap order;
+- unit TB unaffected (conv1d_stream unchanged).
+
 ## Testbench / script changes made alongside (not part of the RTL snapshots)
 - r5: `tb_cnn_eq.sv` timeout dump no longer prints `jf_count`. `tb_conv1d_unit.sv` gains `DW`/`IN_SIGNED` parameters (macro `UT(i, ic, oc, k, s, aw, dw, sg, ww, last, dsp, ist, ost)`). `impl_ooc_opt.tcl` accepts a snapshot directory as `conv_src`.
 - `tb_cnn_eq.sv`:

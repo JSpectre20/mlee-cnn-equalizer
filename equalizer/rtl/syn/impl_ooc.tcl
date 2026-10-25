@@ -13,6 +13,7 @@ read_verilog -sv [list \
     [file join $rtl gen $model cnn_eq_pkg.sv] \
     [file join $rtl src sync_fifo.sv] \
     [file join $rtl src add_tree.sv] \
+    [file join $rtl src dfe_stream.sv] \
     [file join $rtl src conv1d_stream.sv] \
     [file join $rtl src cnn_eq_core.sv] \
     [file join $rtl src cnn_eq_top.sv]]

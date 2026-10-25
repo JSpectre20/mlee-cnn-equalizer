@@ -26,7 +26,9 @@ set out      [file join $here "out_${model}_${period}ns_dsp${use_dsp}_${tag}"]
 file mkdir $out
 
 set srcs [list [file join $rtl gen $model cnn_eq_pkg.sv] [file join $src_dir sync_fifo.sv]]
-if {[file exists [file join $src_dir add_tree.sv]]} { lappend srcs [file join $src_dir add_tree.sv] }
+foreach extra {add_tree.sv dfe_stream.sv} {
+    if {[file exists [file join $src_dir $extra]]} { lappend srcs [file join $src_dir $extra] }
+}
 lappend srcs $conv_src [file join $src_dir cnn_eq_core.sv] [file join $src_dir cnn_eq_top.sv]
 read_verilog -sv $srcs
 

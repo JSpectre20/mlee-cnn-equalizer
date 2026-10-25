@@ -8,6 +8,9 @@ Integer arithmetic (this is the contract the RTL implements, see rtl/WEIGHT_FORM
   hidden      a'   = clamp(((acc + bias_q[oc]) * M[oc] + 2^(S[oc]-1)) >>> S[oc], 0, 2^Ba - 1)
               (ReLU and requantization in one step; >>> is an arithmetic right shift)
   last layer  z    = acc + bias_q[oc]; decision bit = (z > 0); soft output = z
+  feedback    (optional, fb set) u[n] = z[n] + sum_k fb[v][k] * d[n-1-k], v = n mod vp,
+              d[n] = +1 if u[n] > 0 else -1, d = -1 before the first symbol of a frame;
+              decision bit = (u > 0); soft output = u
 
 Weights are symmetric per output channel, W_q in [-(2^(Bw-1)-1), 2^(Bw-1)-1].
 BatchNorm is folded into the preceding convolution before quantization.
@@ -166,6 +169,7 @@ class IntegerModel:
     M: list          # per hidden layer int64 (oc,)
     S: list          # per hidden layer int64 (oc,)
     out_scale: np.ndarray  # (vp,) real value of one LSB of z for output channel v (symbol n uses v = n % vp)
+    fb: np.ndarray | None = None   # (vp, n_fb) integer decision-feedback taps in LSBs of z, or None
 
     def dequantize_output(self, z: np.ndarray) -> np.ndarray:
         return z * self.out_scale[np.arange(len(z)) % self.vp]
@@ -194,6 +198,9 @@ class IntegerModel:
                 a = np.clip((acc * M + (1 << (S - 1))) >> S, 0, qa)
             else:
                 z = acc.T.reshape(-1)[:n_sym]
+        fb = getattr(self, "fb", None)   # older pickles have no fb field
+        if fb is not None:
+            z = dfe_int(z, fb, self.vp)
         bits = (z > 0).astype(np.int64)
         return (bits, z, accs) if return_acc else (bits, z)
 
@@ -204,6 +211,47 @@ class IntegerModel:
             _, _, accs = self.forward_int(x, return_acc=True)
             m = [max(mi, int(np.abs(a).max())) for mi, a in zip(m, accs)]
         return [int(np.ceil(np.log2(v + 1))) + 1 for v in m]
+
+
+def dfe_int(z: np.ndarray, fb: np.ndarray, vp: int) -> np.ndarray:
+    """Integer decision feedback on one frame: u[n] = z[n] + sum_k fb[n % vp][k] * d[n-1-k]."""
+    n_fb = fb.shape[1]
+    hist = [-1] * n_fb                     # d[n-1], d[n-2], ...; -1 before the frame
+    fbl = [[int(c) for c in row] for row in fb]
+    u = np.empty(len(z), dtype=np.int64)
+    for n, zn in enumerate(z.tolist()):
+        row = fbl[n % vp]
+        v = zn
+        for k in range(n_fb):
+            v += row[k] * hist[k]
+        u[n] = v
+        hist = [1 if v > 0 else -1] + hist[:-1]
+    return u
+
+
+class QuantCNNDFE(nn.Module):
+    """QuantNeyCNN + float decision-feedback taps (teacher-forced training, see eqsim.dfe)."""
+
+    def __init__(self, q: QuantNeyCNN, fb_init):
+        super().__init__()
+        self.q = q
+        self.n_fb = len(fb_init)
+        self.fb = nn.Parameter(torch.as_tensor(np.asarray(fb_init, dtype=np.float32)).clone())
+
+    def forward(self, x, s_true=None):
+        y = self.q(x)
+        if s_true is not None:
+            for k in range(self.n_fb):
+                y = y + self.fb[k] * F.pad(s_true, (k + 1, 0))[:, : y.shape[1]]
+        return y
+
+
+def export_integer_dfe(qd: QuantCNNDFE) -> IntegerModel:
+    """Integer model of a QuantCNNDFE: fb[v][k] = round(fb[k] / out_scale[v])."""
+    im = export_integer(qd.q)
+    fb = qd.fb.detach().double().numpy()
+    im.fb = np.floor(fb[None, :] / im.out_scale[:, None] + 0.5).astype(np.int64)
+    return im
 
 
 def export_integer(q: QuantNeyCNN) -> IntegerModel:

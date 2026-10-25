@@ -18,7 +18,8 @@ module cnn_eq_core
     output logic                    s_ready,
     input  logic signed [B_IN-1:0]  s_data,
     input  logic                    s_last,
-    // output symbols: z saturated to signed 16 bits, decision bit = (m_data > 0)
+    // output symbols: z (or u = z + decision feedback when N_FB > 0) saturated to signed 16 bits,
+    // decision bit = (m_data > 0)
     output logic                    m_valid,
     input  logic                    m_ready,
     output logic signed [15:0]      m_data,
@@ -120,16 +121,37 @@ module cnn_eq_core
     // --------------------------------------------------------------- serializer
     localparam int VW = (VP > 1) ? $clog2(VP) : 1;
     logic [VW-1:0] v;
-    localparam logic signed [ACC_W-1:0] SAT_HI = ACC_W'(32767);
-    localparam logic signed [ACC_W-1:0] SAT_LO = -ACC_W'(32768);
     logic signed [ACC_W-1:0] zv;
-    assign zv      = z[v];
-    assign m_valid = z_valid;
-    assign m_data  = (zv > SAT_HI) ? 16'sh7FFF : (zv < SAT_LO) ? 16'sh8000 : zv[15:0];
-    assign m_last  = z_last && (v == VW'(VP - 1));
-    assign z_ready = m_ready && (v == VW'(VP - 1));
+    logic ser_valid, ser_ready, ser_last;
+    assign zv        = z[v];
+    assign ser_valid = z_valid;
+    assign ser_last  = z_last && (v == VW'(VP - 1));
+    assign z_ready   = ser_ready && (v == VW'(VP - 1));
     always_ff @(posedge clk) begin
         if (rst) v <= '0;
-        else if (m_valid && m_ready) v <= (v == VW'(VP - 1)) ? '0 : v + 1'b1;
+        else if (ser_valid && ser_ready) v <= (v == VW'(VP - 1)) ? '0 : v + 1'b1;
+    end
+
+    // ------------------------------------------- decision feedback (N_FB > 0) + saturation
+    function automatic logic signed [15:0] sat16(input logic signed [63:0] x);
+        return (x > 64'sd32767) ? 16'sh7FFF : (x < -64'sd32768) ? 16'sh8000 : x[15:0];
+    endfunction
+    if (N_FB > 0) begin : g_dfe
+        logic signed [ACC_W-1:0] fb [VP][N_FB];
+        always_comb
+            for (int vv = 0; vv < VP; vv++)
+                for (int k = 0; k < N_FB; k++) fb[vv][k] = pmem[FB_OFF + vv * N_FB + k][ACC_W-1:0];
+        localparam int UW = ACC_W + N_FB;
+        logic signed [UW-1:0] u;
+        dfe_stream #(.VP(VP), .N_FB(N_FB), .ZW(ACC_W), .FW(ACC_W)) u_dfe (
+            .clk, .rst, .fb,
+            .s_valid(ser_valid), .s_ready(ser_ready), .s_z(zv), .s_lane(v), .s_last(ser_last),
+            .m_valid, .m_ready, .m_u(u), .m_last);
+        assign m_data = sat16(64'(u));
+    end else begin : g_nodfe
+        assign m_valid   = ser_valid;
+        assign ser_ready = m_ready;
+        assign m_last    = ser_last;
+        assign m_data    = sat16(64'(zv));
     end
 endmodule

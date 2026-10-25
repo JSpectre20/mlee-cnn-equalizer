@@ -16,7 +16,7 @@ $work = Join-Path $PSScriptRoot "work_$Model"
 New-Item -ItemType Directory -Force $work | Out-Null
 Push-Location $work
 try {
-    $src = @("$gen\cnn_eq_pkg.sv", "$rtl\src\sync_fifo.sv", "$rtl\src\add_tree.sv", $ConvSrc,
+    $src = @("$gen\cnn_eq_pkg.sv", "$rtl\src\sync_fifo.sv", "$rtl\src\add_tree.sv", "$rtl\src\dfe_stream.sv", $ConvSrc,
              "$rtl\src\cnn_eq_core.sv", "$rtl\src\cnn_eq_top.sv", "$rtl\sim\tb_cnn_eq.sv")
     Set-Content tb_dsp.svh "localparam bit USE_DSP = $UseDsp;" -Encoding ascii
     & "$Vivado\xvlog.bat" -sv -i $gen -i $work @src | Tee-Object xvlog_out.log | Out-Null
