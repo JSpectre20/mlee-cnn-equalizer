@@ -11,13 +11,16 @@
 module tb_cnn_eq;
     import cnn_eq_pkg::*;
     `include "tb_cfg.svh"
-    `include "tb_dsp.svh"   // localparam bit USE_DSP, written by run_sim.ps1
+    `include "tb_dsp.svh"   // localparam bit USE_DSP (+ optional `define NETLIST / TB_HALF_NS), written by the run script
+`ifndef TB_HALF_NS
+    `define TB_HALF_NS 5    // 100 MHz; the power runs use 2.5 (200 MHz)
+`endif
 
     localparam int N_IN  = TB_FRAMES * TB_FRAME_SAMPLES;
     localparam int N_OUT = TB_FRAMES * TB_FRAME_SYM;
 
     logic aclk = 0, aresetn = 0;
-    always #5 aclk = ~aclk;   // 100 MHz
+    always #(`TB_HALF_NS) aclk = ~aclk;
 
     logic [15:0] awaddr, araddr;
     logic awvalid, awready, wvalid, wready, bvalid, bready, arvalid, arready, rvalid, rready;
@@ -28,7 +31,11 @@ module tb_cnn_eq;
     logic [15:0] m_tdata;
     logic m_tvalid, m_tready, m_tlast;
 
+`ifdef NETLIST   // post-route functional netlist (no parameters, no RTL hierarchy)
+    cnn_eq_top dut (
+`else
     cnn_eq_top #(.USE_DSP(USE_DSP)) dut (
+`endif
         .aclk, .aresetn,
         .s_axil_awaddr(awaddr), .s_axil_awvalid(awvalid), .s_axil_awready(awready),
         .s_axil_wdata(wdata), .s_axil_wstrb(4'hF), .s_axil_wvalid(wvalid), .s_axil_wready(wready),
@@ -74,7 +81,7 @@ module tb_cnn_eq;
         s_tvalid = 0; s_tlast = 0; s_tdata = 0;
         wait (aresetn);
         @(posedge aclk);
-        wait (dut.u_core.s_ready !== 1'bx);
+        wait (s_tready !== 1'bx);
         #1;
         wait (tb_cnn_eq.params_loaded);
         while (n_sent < N_IN) begin
@@ -86,6 +93,9 @@ module tb_cnn_eq;
                 if (s_tready) begin
                     if (t_first_in < 0) t_first_in = cyc;
                     n_sent++;
+`ifdef NETLIST
+                    if (n_sent % 256 == 0) $display("progress: %0d / %0d samples sent, %0d outputs (t = %0t)", n_sent, N_IN, n_recv, $time);
+`endif
                 end
             end else begin
                 s_tvalid <= 0;
@@ -124,6 +134,10 @@ module tb_cnn_eq;
         $readmemh("test_out.mem", vout);
         awvalid = 0; wvalid = 0; bready = 0; arvalid = 0; rready = 0;
         repeat (10) @(posedge aclk);
+`ifdef NETLIST
+        wait (glbl.GSR === 1'b0);    // netlist flip-flops ignore their inputs during the 100 ns global set/reset
+        repeat (10) @(posedge aclk);
+`endif
         aresetn = 1;
         repeat (5) @(posedge aclk);
         axil_read(16'h0000, r);
@@ -138,6 +152,7 @@ module tb_cnn_eq;
             begin
                 repeat (200 * N_IN + 10000) @(posedge aclk);
                 $display("TIMEOUT: received %0d of %0d, sent %0d", n_recv, N_OUT, n_sent);
+`ifndef NETLIST
                 $display("  L0: st=%0d n_in=%0d created=%0d of=%0d infl=%0d busy=%0d",
                     dut.u_core.g_layer[0].u_conv.st, dut.u_core.g_layer[0].u_conv.n_in, dut.u_core.g_layer[0].u_conv.created,
                     dut.u_core.g_layer[0].u_conv.of_count, dut.u_core.g_layer[0].u_conv.inflight, dut.u_core.g_layer[0].u_conv.busy);
@@ -147,6 +162,7 @@ module tb_cnn_eq;
                 $display("  LAST: st=%0d n_in=%0d created=%0d of=%0d infl=%0d busy=%0d",
                     dut.u_core.u_last.st, dut.u_core.u_last.n_in, dut.u_core.u_last.created,
                     dut.u_core.u_last.of_count, dut.u_core.u_last.inflight, dut.u_core.u_last.busy);
+`endif
             end
         join_any
         repeat (50) @(posedge aclk);  // catch extra beats

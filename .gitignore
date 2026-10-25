@@ -34,3 +34,6 @@ equalizer/rtl/**/dfx_runtime.txt
 equalizer/rtl/**/clockInfo.txt
 equalizer/rtl/**/retry_open_fs.log
 equalizer/rtl/bd/NA/
+
+# gate-level power simulation work dirs (netlists, SAIF, xsim)
+equalizer/rtl/power/work_*/
