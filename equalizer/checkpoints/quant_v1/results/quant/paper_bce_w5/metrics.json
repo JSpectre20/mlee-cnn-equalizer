@@ -1,0 +1,31 @@
+{
+  "name": "paper_bce",
+  "source": "vp8_L3_K9_C5_bce_s1",
+  "loss": "bce",
+  "bits": 5,
+  "ptq_ber": 0.00572616474543708,
+  "qat_ber": 0.001959754242715338,
+  "bits_tested": 3997440,
+  "acc_bits_needed": [
+    12,
+    12,
+    12
+  ],
+  "qat_s": 53.8,
+  "requant_shifts": [
+    [
+      20,
+      20,
+      20,
+      20,
+      21
+    ],
+    [
+      20,
+      20,
+      19,
+      20,
+      20
+    ]
+  ]
+}

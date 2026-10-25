@@ -1,0 +1,186 @@
+{
+  "tag": "hw_v1",
+  "created": "2026-10-25T12:24:38",
+  "note": "Final engine r7b: RTL sources, PYNQ-Z2 system scripts, overlay (core 200 MHz / DMA 100 MHz, timing met) and the reports behind the PROGRESS.md 5.6 numbers",
+  "sources": [
+    "rtl/history/r7b",
+    "rtl/history/CHANGES.md",
+    "rtl/bd/cnn_eq_axi.v",
+    "rtl/bd/build_bd.tcl",
+    "rtl/syn/impl_ooc_opt.tcl",
+    "rtl/syn/impl_ooc.tcl",
+    "rtl/sim/tb_cnn_eq.sv",
+    "rtl/sim/tb_conv1d_unit.sv",
+    "rtl/sim/run_sim.ps1",
+    "rtl/sim/run_unit.ps1",
+    "rtl/WEIGHT_FORMAT.md",
+    "rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/overlay",
+    "rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/rpt",
+    "rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7b/summary.txt",
+    "rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7b/util.rpt",
+    "rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7b/util_hier.rpt",
+    "rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7b/timing.rpt",
+    "rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7b/power.rpt",
+    "rtl/syn/out_ours_bce_w6_5.0ns_dsp0_r7b/summary.txt",
+    "rtl/syn/out_ours_bce_w6_5.0ns_dsp0_r7b/util.rpt",
+    "rtl/syn/out_ours_bce_w6_5.0ns_dsp0_r7b/timing.rpt",
+    "rtl/syn/out_ours_bce_w6_5.0ns_dsp0_r7b/power.rpt"
+  ],
+  "files": [
+    {
+      "path": "rtl/bd/build_bd.tcl",
+      "bytes": 7769,
+      "sha256": "b2d90f6540ae9eba5f249056ef80e7131752cf84dde534fdd78bb380f51b396e"
+    },
+    {
+      "path": "rtl/bd/cnn_eq_axi.v",
+      "bytes": 2858,
+      "sha256": "ff00142576dbee6f269a43dbaef566dd0b4ef136bca3872272aeff4fecfeff14"
+    },
+    {
+      "path": "rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/overlay/cnn_eq.bit",
+      "bytes": 4045690,
+      "sha256": "5031fb706eead683a8a271f0b6e7c8346a19e9556af70311362277854d9b9e51"
+    },
+    {
+      "path": "rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/overlay/cnn_eq.hwh",
+      "bytes": 341491,
+      "sha256": "49182f819756ec71bbf8c919595d7c7fd007bd94812e486706bf4162828f19b3"
+    },
+    {
+      "path": "rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/rpt/power.rpt",
+      "bytes": 10662,
+      "sha256": "c71e5477c2a962d6af092a588859c7745891a01e927d60a04eb141019e16ae0a"
+    },
+    {
+      "path": "rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/rpt/summary.txt",
+      "bytes": 79,
+      "sha256": "f1214a5219d7dcece84b9ffc4e9de104ff6e82bbeeac068028eb3d92f62a1970"
+    },
+    {
+      "path": "rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/rpt/timing.rpt",
+      "bytes": 500031,
+      "sha256": "739e6bfe21f5b71ddf6a69ce755335736e31a535dc4a2c6d77a1322c50fc85a4"
+    },
+    {
+      "path": "rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/rpt/util.rpt",
+      "bytes": 11590,
+      "sha256": "fc314cf66a0e0d7c1dadadb7246bf7d846e8e3bc4cf5edd9dd6ff657629364a0"
+    },
+    {
+      "path": "rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/rpt/util_hier.rpt",
+      "bytes": 5541,
+      "sha256": "445c45615b6ea5c01aafc22598fbc70d7eb23edb9cdb237f607f09025039e77e"
+    },
+    {
+      "path": "rtl/history/CHANGES.md",
+      "bytes": 16960,
+      "sha256": "ec909c8060eab48826b12344d58a693b48caf9dd4f0157f226a2424c933e733c"
+    },
+    {
+      "path": "rtl/history/r7b/add_tree.sv",
+      "bytes": 1449,
+      "sha256": "17b4b2fb0ecf36106258dbeb1746b671cd5baaff0cb81b114f271ac1cfcfdbd8"
+    },
+    {
+      "path": "rtl/history/r7b/cnn_eq_core.sv",
+      "bytes": 6397,
+      "sha256": "3cf7b92f8cc86e7f4acf310cd89492bcab26cb6bce1d08391c6ae009f04f4749"
+    },
+    {
+      "path": "rtl/history/r7b/cnn_eq_top.sv",
+      "bytes": 5135,
+      "sha256": "26146f01676f4d4f58e594a720447937ac0b175ad719d22a01654fde1c0047c8"
+    },
+    {
+      "path": "rtl/history/r7b/conv1d_stream.sv",
+      "bytes": 21797,
+      "sha256": "f3a16099dc6640a0b7e6b8936db7f7d6b478b2f5e7791f1e48d012efa905230d"
+    },
+    {
+      "path": "rtl/history/r7b/sync_fifo.sv",
+      "bytes": 1315,
+      "sha256": "a2c32ac57a18828e350c738b8cf72d6abee3444cba4260bdcc77c44536e15c8f"
+    },
+    {
+      "path": "rtl/sim/run_sim.ps1",
+      "bytes": 1751,
+      "sha256": "dcc1976faeb8525634a352005e30b793ecd82a4f9c478d9a0e9def262120df7e"
+    },
+    {
+      "path": "rtl/sim/run_unit.ps1",
+      "bytes": 1121,
+      "sha256": "8acee8e346130913b759007468d76c5c0da80d7a60e5a685388b7caaa64745d4"
+    },
+    {
+      "path": "rtl/sim/tb_cnn_eq.sv",
+      "bytes": 7340,
+      "sha256": "a1cc38eba3de0b67fad360471b13a46c4779c2a54534170b13d6dbc850abe359"
+    },
+    {
+      "path": "rtl/sim/tb_conv1d_unit.sv",
+      "bytes": 8916,
+      "sha256": "e6025821f4e3475f4d4f6a5df95761809d47fe46b4e1c5c4fc1a1a7b9b2d7e07"
+    },
+    {
+      "path": "rtl/syn/impl_ooc.tcl",
+      "bytes": 1833,
+      "sha256": "a1ca526a0fe79ff92247f28e077c073f193bc1a6ffda1c50a86cf57dbed93974"
+    },
+    {
+      "path": "rtl/syn/impl_ooc_opt.tcl",
+      "bytes": 3250,
+      "sha256": "2f3172a9160ebe3409c159bb7fb60c8212675be3d46ffc0f5b5c5b90541eac5c"
+    },
+    {
+      "path": "rtl/syn/out_ours_bce_w6_5.0ns_dsp0_r7b/power.rpt",
+      "bytes": 10057,
+      "sha256": "78d069de47c42bb0d02faecdc367f0d68a4895996890963d84cf4c411e6587f5"
+    },
+    {
+      "path": "rtl/syn/out_ours_bce_w6_5.0ns_dsp0_r7b/summary.txt",
+      "bytes": 209,
+      "sha256": "e505afedb8512ef1d7ad74a7d9fc06b814fe77dfd6cac80a7518cb63e3a6fecf"
+    },
+    {
+      "path": "rtl/syn/out_ours_bce_w6_5.0ns_dsp0_r7b/timing.rpt",
+      "bytes": 97563,
+      "sha256": "1724a91f6985edce5b01d87fe9f580eabd8c9d8e961b82237d69d536eb34a5d9"
+    },
+    {
+      "path": "rtl/syn/out_ours_bce_w6_5.0ns_dsp0_r7b/util.rpt",
+      "bytes": 10970,
+      "sha256": "f97ce990587865cd9145cdf615f558f7eb4d1b5d4a2afdf25c939fce8c5daf10"
+    },
+    {
+      "path": "rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7b/power.rpt",
+      "bytes": 10199,
+      "sha256": "204b7f681e40bbe340f556c713d2c60b5869bd906acab30f584f07fd50226a01"
+    },
+    {
+      "path": "rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7b/summary.txt",
+      "bytes": 209,
+      "sha256": "5473547b6c7fd41fd28f4c39d373142c343b84f1d27ec694ce3a9685ebcacbc1"
+    },
+    {
+      "path": "rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7b/timing.rpt",
+      "bytes": 83387,
+      "sha256": "69d55bb9e13fffc2311f59c3c2c2a8185306c98e55c007492ed7ce91a633ab0f"
+    },
+    {
+      "path": "rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7b/util.rpt",
+      "bytes": 10917,
+      "sha256": "22bbfd2e8e64fffd8d400569393da87e5417a65408a61d21cee4fe46170df0e3"
+    },
+    {
+      "path": "rtl/syn/out_ours_bce_w6_5.0ns_dsp1_r7b/util_hier.rpt",
+      "bytes": 4749,
+      "sha256": "d5fb83a7c1262247093a01c8c6c4a3bf2e7b410a41329b0b07c953f73e5b78d7"
+    },
+    {
+      "path": "rtl/WEIGHT_FORMAT.md",
+      "bytes": 3373,
+      "sha256": "0bcf72f2bf2b9ca8e79e9d9503a01cffd5e654a71834aa135be6b361dda24348"
+    }
+  ]
+}

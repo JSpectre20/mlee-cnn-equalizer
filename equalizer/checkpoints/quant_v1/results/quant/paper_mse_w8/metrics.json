@@ -1,0 +1,31 @@
+{
+  "name": "paper_mse",
+  "source": "vp8_L3_K9_C5_mse_s1",
+  "loss": "mse",
+  "bits": 8,
+  "ptq_ber": 0.001124469660582773,
+  "qat_ber": 0.0004963176432917067,
+  "bits_tested": 3997440,
+  "acc_bits_needed": [
+    19,
+    18,
+    17
+  ],
+  "qat_s": 62.8,
+  "requant_shifts": [
+    [
+      24,
+      23,
+      23,
+      24,
+      25
+    ],
+    [
+      21,
+      22,
+      22,
+      22,
+      22
+    ]
+  ]
+}

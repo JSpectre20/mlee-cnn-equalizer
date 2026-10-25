@@ -1,0 +1,33 @@
+{
+  "name": "ours_mse",
+  "source": "vp4_L4_K9_C3_mse_s2",
+  "loss": "mse",
+  "bits": 3,
+  "ptq_ber": 0.16544013168427793,
+  "qat_ber": 0.16693959133845662,
+  "bits_tested": 3997440,
+  "acc_bits_needed": [
+    7,
+    7,
+    7,
+    7
+  ],
+  "qat_s": 79.0,
+  "requant_shifts": [
+    [
+      17,
+      17,
+      17
+    ],
+    [
+      16,
+      17,
+      18
+    ],
+    [
+      17,
+      18,
+      16
+    ]
+  ]
+}

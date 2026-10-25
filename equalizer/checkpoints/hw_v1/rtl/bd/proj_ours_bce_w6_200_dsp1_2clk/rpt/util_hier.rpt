@@ -1,0 +1,48 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Sun Oct 25 03:23:27 2026
+| Host         : Legion-SJ07 running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -hierarchical_depth 3 -file C:/Users/Admin/Documents/Bits/3-1/mlee/Project/equalizer/rtl/bd/proj_ours_bce_w6_200_dsp1_2clk/rpt/util_hier.rpt
+| Design       : system_wrapper
+| Device       : xc7z020clg400-1
+| Speed File   : -1
+| Design State : Physopt postRoute
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++----------------------+---------------------------------------------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+|       Instance       |                                Module                               | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs  | RAMB36 | RAMB18 | DSP Blocks |
++----------------------+---------------------------------------------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+| system_wrapper       |                                                               (top) |       6857 |       6494 |     162 |  201 | 10726 |      2 |      2 |         45 |
+|   system_i           |                                                              system |       6857 |       6494 |     162 |  201 | 10726 |      2 |      2 |         45 |
+|     axi_mem_intercon |                                           system_axi_mem_intercon_0 |        568 |        555 |      10 |    3 |   669 |      0 |      0 |          0 |
+|       s00_couplers   |                                            s00_couplers_imp_1P403ZT |        121 |        119 |       2 |    0 |   139 |      0 |      0 |          0 |
+|       s01_couplers   |                                             s01_couplers_imp_VQ497S |        173 |        165 |       8 |    0 |   209 |      0 |      0 |          0 |
+|       xbar           |                                  system_axi_mem_intercon_imp_xbar_0 |        274 |        271 |       0 |    3 |   321 |      0 |      0 |          0 |
+|     cc_in            |                                                      system_cc_in_0 |         87 |         61 |      26 |    0 |   166 |      0 |      0 |          0 |
+|       inst           |        axis_clock_converter_v1_1_36_axis_clock_converter__xdcDup__1 |         87 |         61 |      26 |    0 |   166 |      0 |      0 |          0 |
+|     cc_out           |                                                     system_cc_out_0 |         86 |         60 |      26 |    0 |   166 |      0 |      0 |          0 |
+|       inst           |                   axis_clock_converter_v1_1_36_axis_clock_converter |         86 |         60 |      26 |    0 |   166 |      0 |      0 |          0 |
+|     dma              |                                                        system_dma_0 |       1599 |       1485 |       8 |  106 |  2285 |      2 |      2 |          0 |
+|       U0             |                                                             axi_dma |       1599 |       1485 |       8 |  106 |  2285 |      2 |      2 |          0 |
+|     dw_out           |                                                     system_dw_out_0 |         13 |         13 |       0 |    0 |    59 |      0 |      0 |          0 |
+|       inst           | axis_dwidth_converter_v1_1_34_axis_dwidth_converter__parameterized0 |         13 |         13 |       0 |    0 |    59 |      0 |      0 |          0 |
+|     eq               |                                                         system_eq_0 |       3865 |       3744 |      92 |   29 |  6306 |      0 |      0 |         45 |
+|       inst           |                                                          cnn_eq_axi |       3865 |       3744 |      92 |   29 |  6306 |      0 |      0 |         45 |
+|     ps7_axi_periph   |                                             system_ps7_axi_periph_0 |        581 |        520 |       0 |   61 |   966 |      0 |      0 |          0 |
+|       m01_couplers   |                                             m01_couplers_imp_EOJKB3 |         47 |         47 |       0 |    0 |   287 |      0 |      0 |          0 |
+|       s00_couplers   |                                            s00_couplers_imp_1C0N0JZ |        404 |        343 |       0 |   61 |   552 |      0 |      0 |          0 |
+|       xbar           |                                    system_ps7_axi_periph_imp_xbar_0 |        130 |        130 |       0 |    0 |   127 |      0 |      0 |          0 |
++----------------------+---------------------------------------------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

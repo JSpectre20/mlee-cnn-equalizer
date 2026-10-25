@@ -1,0 +1,51 @@
+{
+  "name": "ours_bce_w6_short",
+  "source": "results\\quant\\ours_bce_w6\\integer_model.pkl",
+  "L": 4,
+  "K": 9,
+  "C": 3,
+  "VP": 4,
+  "NOS": 2,
+  "B_IN": 6,
+  "B_W": 6,
+  "B_A": 6,
+  "ACC_W": 16,
+  "worst_case_acc_bits": [
+    14,
+    16,
+    16,
+    16
+  ],
+  "N_PARAM": 328,
+  "offsets": {
+    "W": [
+      0,
+      36,
+      126,
+      216
+    ],
+    "B": [
+      27,
+      117,
+      207,
+      324
+    ],
+    "M": [
+      30,
+      120,
+      210,
+      0
+    ],
+    "S": [
+      33,
+      123,
+      213,
+      0
+    ]
+  },
+  "s_in": 0.11701516062021255,
+  "test_frames": 8,
+  "frame_symbols": 64,
+  "test_bit_errors_excl_edges": 0,
+  "test_bits_excl_edges": 0
+}
