@@ -1,0 +1,33 @@
+{
+  "name": "ours_bce",
+  "source": "vp4_L4_K9_C3_bce_s2",
+  "loss": "bce",
+  "bits": 8,
+  "ptq_ber": 3.051953250080051e-05,
+  "qat_ber": 1.1257204610951008e-05,
+  "bits_tested": 3997440,
+  "acc_bits_needed": [
+    17,
+    17,
+    19,
+    17
+  ],
+  "qat_s": 79.5,
+  "requant_shifts": [
+    [
+      23,
+      22,
+      23
+    ],
+    [
+      22,
+      22,
+      22
+    ],
+    [
+      24,
+      24,
+      24
+    ]
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "stage": "all",
+  "iters": "30",
+  "seeds": "2",
+  "workers": "6",
+  "snr": "24.0",
+  "train_symbols": "400000",
+  "test_symbols": "400000",
+  "out": "results\\imdd_dse_smoke",
+  "channel": {
+    "baud": 40000000000.0,
+    "order": 2,
+    "nos": 2,
+    "sps_sim": 8,
+    "rrc_beta": 0.2,
+    "rrc_span": 32,
+    "length_km": 31.5,
+    "dispersion_ps_nm_km": 16.0,
+    "wavelength_m": 1.55e-06,
+    "mod_index": 0.8,
+    "pd_bandwidth_hz": 40000000000.0,
+    "pd_order": 4,
+    "snr_db": 24.0,
+    "adc_bits": null,
+    "adc_clip_sigma": 3.0,
+    "guard_symbols": 64
+  }
+}
