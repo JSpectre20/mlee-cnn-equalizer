@@ -1,0 +1,1091 @@
+
+
+===== PAGE 1 =====
+arXiv:2405.02323v1  [cs.AR]  22 Apr 2024
+CNN-Based Equalization for Communications:
+Achieving Gigabit Throughput with a Flexible
+FPGA Hardware Architecture
+Jonas Ney 1*, Christoph F¨ ullner2, Vincent Lauinger 3,
+Laurent Schmalen 3, Sebastian Randel 2, Norbert Wehn 1
+1*Microelectronic Systems Design (EMS), RPTU
+Kaiserslautern-Landau, Kaiserslautern, 67653, Germany.
+2Institute of Photonics and Quantum Electronics (IPQ), KIT,
+Karlsruhe, 76131, Germany.
+3Communications Engineering Lab (CEL), KIT, Karlsruhe, 761 31,
+Germany.
+*Corresponding author(s). E-mail(s): jonas.ney@rptu.de;
+Contributing authors: christoph.fuellner@kit.edu;
+vincent.lauinger@kit.edu; laurent.schmalen@kit.edu;
+sebastian.randel@kit.edu; norbert.wehn@rptu.de;
+Abstract
+To satisfy the growing throughput demand of data-intensive applications, the
+performance of optical communication systems increased dr amatically in recent
+years. With higher throughput, more advanced equalizers ar e crucial, to compen-
+sate for impairments caused by inter-symbol interference ( ISI). The latest research
+shows that artiﬁcial neural network (ANN)-based equalizer s are promising can-
+didates to replace traditional algorithms for high-throug hput communications.
+On the other hand, not only throughput but also ﬂexibility is a main objec-
+tive of beyond-5G and 6G communication systems. A platform t hat is able to
+satisfy the strict throughput and ﬂexibility requirements of modern communica-
+tion systems are ﬁeld programmable gate arrays (FPGAs). Thu s, in this work,
+we present a high-performance FPGA implementation of an ANN -based equal-
+izer, which meets the throughput requirements of modern opt ical communication
+systems. Further, our architecture is highly ﬂexible since it includes a variable
+degree of parallelism (DOP) and therefore can also be applie d to low-cost or
+low-power applications which is demonstrated for a magneti c recording channel.
+1
+
+===== PAGE 2 =====
+The implementation is based on a cross-layer design approac h featuring optimiza-
+tions from the algorithm down to the hardware architecture, including a detailed
+quantization analysis. Moreover, we present a framework to reduce the latency
+of the ANN-based equalizer under given throughput constrai nts. As a result, the
+bit error ratio (BER) of our equalizer for the optical ﬁber ch annel is around
+four times lower than that of a conventional one, while the co rresponding FPGA
+implementation achieves a throughput of more than 40 GBd, ou tperforming a
+high-performance graphics processing unit (GPU) by three o rders of magnitude
+for a similar batch size.
+Keywords: FPGA, Machine Learning, Neural Networks, Optical Communic ations
+1 Introduction
+In recent years, the achievable throughput of optical communica tion systems grew
+dramatically, driven by the increasing demand for high-speed data t ransmission in
+various applications such as data centers, video streaming, and clo ud computing [ 1].
+The higher throughput leads to lower signal-to-noise ratio (SNR) an d an increased
+inter-symbol interference (ISI) which strongly impairs the syste m’s performance. As
+a result, the design and implementation of advanced signal process ing techniques has
+become crucial for maintaining high communication performance and low bit error
+ratio (BER). On the other hand, in addition to high throughput, fut ure communi-
+cation standards strongly focus on ﬂexible architectures [ 2], [ 3] to satisfy application
+requirements for various use cases.
+To prevent an increase in BER while providing high ﬂexibility, latest rese arch put
+a strong emphasis on artiﬁcial neural network (ANN)-based algor ithms for commu-
+nication systems [ 4], [ 5], [ 6]. Especially the equalizer, responsible for compensating
+channel impairments of the received signal, is a component that can beneﬁt from the
+advancements of ANN research. In particular, ANNs have shown r emarkable results
+for channels with non-linear eﬀects, for which no exact analytical s olutions exist for
+equalization [ 7]. In this work, we study a 40 GBd optical intensity modulation with
+direct detection (IM/DD) channel, where non-linear distortions ar e caused by chro-
+matic dispersion (CD) [ 8], as an exemplary use case for a high-throughput ANN-based
+equalization. Further, we provide results for a low-cost telephone channel to highlight
+the ﬂexibility of our hardware architecture.
+Compared to conventional algorithms, which have been optimized fo r decades,
+ANNs introduce high computational complexity, limiting the achievable throughput
+on general-purpose processors like central processing units (CP Us) or graphics process-
+ing units (GPUs). In contrast, application-speciﬁc platforms like ﬁe ld programmable
+gate arrays (FPGAs) or application-speciﬁc integrated circuits (A SICs) provide huge
+parallelism and customizability. As compared to ASICs, the deploymen t of FPGAs is
+more cost-eﬃcient for low-volume productions and they can provid e a shorter time-
+to-market [ 9, Ch. 1]. Further, FPGAs can be reprogrammed to provide the requ ired
+ﬂexibility.
+2
+
+===== PAGE 3 =====
+Most previous works utilized FPGAs as a platform for performance e valuation and
+prototyping of ASIC implementations [10], [11], [12], [13], [14]. In contrast, in this work,
+we aim to satisfy the strict throughput requirements on the FPGA it self. This way the
+design can either be deployed on the FPGA or be used as a well-ground ed base for an
+ASIC design. However, when the design is deployed on an FPGA, it has to satisfy the
+strict performance requirements on this resource-constrained device, which is a great
+challenge even with advanced FPGA platforms. In [ 10], the FPGA implementation of
+a recurrent neural network (RNN)-based equalizer for a 34 GBd s ingle-channel dual-
+polarization as well as approximations of non-linear activation funct ions are presented.
+Their throughput requirements can be satisﬁed by using 5 FPGAs an d a high number
+of parallel outputs (61) of each RNN, which is not feasible for the 40 GBd IM/DD
+channel we focus on in this work, as it results in signiﬁcantly increase d BER. In [11] and
+[12], a channel more similar to ours is considered. However, the implemen tation of [ 11]
+only achieves a throughput of 2 .6 Gbps for a channel with a data-rate of 50 Gbps. In
+[12] a pruned ANN is utilized for equalization of a 50 GBd pulse-amplitude mo dulation
+(PAM)-4 channel. To achieve the required throughput on FPGA, the BER requirement
+needs to be relaxed from 1 · 10−5 to 3 .8 · 10−3. In [ 13], an RNN is compared to a
+fully-connected ANN for equalization of an IM/DD channel. While the R NN achieves
+a much lower BER, only the ANN is able to meet the throughput require ments of
+the optical communication channel. In [ 14] a novel unsupervised loss function for
+ANN-based equalization is proposed. Further, a trainable FPGA imple mentation of
+the approach is presented which enables adaptation to varying cha nnel conditions
+during runtime. However, the implementation does not achieve the r equired channel
+throughput of 25 GBd.
+In this work, we present a high-throughput FPGA implementation of a convo-
+lutional neural network (CNN)-based equalizer for an optical IM/ DD channel. In
+contrast to previous works, we apply a cross-layer design method ology, which involves
+an extensive design space exploration of the CNN topology, and a fr amework for
+selecting the appropriate sequence length per CNN instance. More over, a detailed
+quantization analysis based on an automatic quantization approach is conducted. Fur-
+ther, we show how our design approach can also be applied to low-cos t channels with
+lower throughput constraints. For the high-throughput, 40 GBd channel, we focus on
+high parallelism across all design layers, from algorithm down to impleme ntation. Fur-
+ther, special attention is given to low latency which is crucial for opt ical communication
+used in high-frequency trading or telemedicine.
+As a result, our FPGA implementation achieves a BER around one orde r of mag-
+nitude lower than that of a conventional equalizer, while satisfying t he throughput
+requirement of 40 GBd. Further, our approach outperforms an im plementation on a
+high-performance GPU by four orders of magnitude for a similar bat ch size.
+3
+
+===== PAGE 4 =====
+This article is an extension of the work presented in [ 15]. It signiﬁcantly extends the
+previous publication by introducing ﬁnite impulse response (FIR) ﬁlte rs and Volterra
+kernels to the design space exploration to provide a fairer comparis on, by conducting
+a comprehensive quantization analysis, by extending the hardware architecture with a
+ﬂexible degree of parallelism (DOP) to enable the adaptation to diﬀere nt application
+scenarios, by applying and evaluating the approach for a magnetic r ecording channel,
+by analyzing the inﬂuence of the DOP on the throughput and the pow er consumption,
+and by extending the comparisons to TensorRT implementations, em bedded GPU
+implementations and providing an analysis of the dynamic power consu mption.
+In summary, our novel contributions are:
+• A detailed design space exploration of the CNN, featuring cross-lay er analysis and
+automatic quantization, resulting in a network with a BER one order o f magnitude
+lower than that of a conventional equalizer;
+• An eﬃcient hardware architecture, suited for high-throughput a s well as low-cost
+application scenarios by providing ﬂexibile DOPs on multiple implementatio n levels
+• An in-depth trade-of analysis of our automatic quantization appro ach
+• A framework allowing to trade-oﬀ throughput against latency to ad apt for applica-
+tion requirements, based on a timing model of our architecture;
+• An advanced implementation of a high-performance CNN-based equ alizer for optical
+communication, achieving a throughput of more than 40 GBd
+2 Investigated Communication Channels
+For our CNN-based equalization approach we mainly focus on the high -throughput
+IM/DD channel presented in Sec. 2.1. To further highlight the ﬂexibility of our
+approach we also give results for the band-limited magnetic recordin g channel as
+described in Sec. 2.2. The ﬁrst channel is based on an experimental setup where the
+input and output data is captured while the second channel is simulat ed in a Python
+environment.
+2.1 Fiber-Optical Channel
+In ﬁber-optic communications, the application of ANN-based equaliz ers has been
+proven beneﬁcial for mitigation of nonlinear distortions for which no analytic expres-
+sion exists [ 16, 17]. In this work, as an example of a high-throughput channel, we
+chose an IM/DD transmission system, where non-linear impairments are caused by
+the interplay between CD and direct detection to evaluate the perf ormance of the
+ANN-based equalizer. Speciﬁcally, we modulate the intensity of a con tinuous-wave
+laser tone at 1550 nm with a high-speed zero-chirp mach-zehnder m odulator (MZM)
+that is biased at the quadrature point. Following the recommendatio ns of [ 18], we use
+a pseudo random sequence based on the Mersenne-Twister algorit hm as a transmit
+pattern and drive the MZM with a 40 GBd pulse amplitude modulation sign al with
+two levels (PAM2) and a root-raised-cosine spectral shape. The r esulting optical on-
+oﬀ-keying signal is launched into a standard single-mode ﬁber with a le ngth of 31 .5 km
+4
+
+===== PAGE 5 =====
+that features a CD coeﬃcient of approximately 16 ps nm −1 km−1. At the receiver side,
+we employ a 40 GHz photodetector to detect the envelope of the op tical signal. Since
+CD is an eﬀect related to the optical ﬁeld, it impairs the photocurren t obtained after
+square-law detection in a nonlinear way. Finally, the electrical signal is recorded by a
+real-time oscilloscope. We digitally resample the captured waveforms and apply a tim-
+ing recovery algorithm to align the received waveform with the trans mit pattern for
+the training of the ANN. We digitally precompensate the frequency- dependent atten-
+uation of the transmitter components so that transceiver noise a nd CD remain as the
+eﬀects impairing the quality of the received signal.
+2.2 Magnetic Recording Channel
+As a second channel, with a smaller bandwidth and therefore a lower m aximal through-
+put, we simulate a linear bad-quality communication channel as descr ibed in [ 19,
+Ch. 9.4-3]. The channel is known as Proakis-B and has the following discrete impulse
+response:
+hch, ProB = [0.407, 0.815, 0.407] .
+In the simulation, the transmitted symbols x, are convolved with a raised-cosine
+(RC) pulse shaping ﬁlter and the linear channel impulse response of t he channel
+hch, ProB. Afterwards, the received vector is superimposed by Gaussian no ise. Similar to
+the experimental setup, we run our simulation with an oversampling r ate of Nos = 2.
+3 CNN Design Space Exploration
+The following design space exploration is performed for the optical ﬁ ber channel
+described in Sec. 2.1. At the end of the section, we show that the obtained model can
+also be successfully applied to the simulated magnetic recording chan nel.
+An optimized neural network topology is crucial for hardware implem entation of
+ANN-based algorithms, as it has a huge inﬂuence on the power consu mption, through-
+put, and latency of the ﬁnal implementation. However, the design o f eﬃcient ANN
+topologies is characterized by an enormous design space with variou s hyperparame-
+ters. This design space includes the layer type, the number of layer s, the size of each
+layer, the activation function, and multiple more hyperparameters . An exploration of
+all those parameters is nearly infeasible, thus we restrict our analy sis to the topol-
+ogy template presented in the following, which provides suﬃcient con ﬁgurability while
+comprising a manageable design space.
+3.1 CNN Topology Template
+The core of our equalizer is a one-dimensional CNN since it resembles t he structure
+of traditional convolutional ﬁlters. The CNN is based on a customiza ble topology
+template shown in Fig. 1, where speciﬁc parameters are determined in an extensive
+design space exploration.
+5
+
+===== PAGE 6 =====
+Conv1D: K, S=Vp
+Batchnorm, ReLU
+Conv1D: K, S=1
+Batchnorm, ReLU Conv1D: K, S=Nos
+1 L − 1 L
+1 × Sin
+C × SinVp C × SinVp
+Vp × SinVp·Nos
+Fig. 1 : Topology template of the equalizer CNN. The feature map dimension s are
+given next to the arrows, where the ﬁrst dimension corresponds t o the number of
+channels and the second one to the width.
+The CNN is composed of L convolutional layers with identical kernel size K and
+padding P . Each convolutional layer but the last is followed by batch normalizat ion
+and rectiﬁed linear unit (ReLU) activation functions. One channel is used for the input
+sequence, while subsequent activations consist of C channels. The output of the CNN
+is based on Vp channels, thus Vp values are calculated in parallel for one pass of the
+network. To shift the input sequence accordingly, the ﬁrst layer h as a stride of Vp,
+while the following layers have a stride of one, and the last stride is set corresponding
+to the oversampling factor Nos. After the last convolutional layer, the feature map is
+ﬂattened so that each element of the feature map corresponds t o one output symbol.
+Afterwards, the output is mapped to the closest constellation sym bol.
+3.2 Linear Equalizer
+To compare the performance of our CNN-based equalizer, we also in clude a conven-
+tional linear feedforward equalizer in our design space exploration. The equalizer is
+based on a FIR ﬁlter with M taps, which is convolved with the input sequence to
+calculate the output sequence. For a time-discrete system, the o utput sequence is the
+weighted sum of M inputs:
+yi =
+M ∗∑
+m=−M ∗
+xi+m · w(m + M ∗) , (1)
+where x is the input sequence, y is the output sequence, w(m) is the weight of the
+mth tap, M ∗ = ⌊M / 2⌋ and ⌊·⌋ declares the ﬂoor operator. For an oversampling factor
+of Nos = 2, every second output sample corresponds to an output symbo l. Similar to
+the CNN, after equalization, the output is mapped to the closest co nstellation symbol.
+We train the linear equalizer in a supervised manner using the mean-sq uared-error
+(MSE) loss and the Adam optimizer.
+3.3 Volterra Equalizer
+For further comparison, we also include a more complex equalizer whic h is based on
+the Volterra kernel. This nonlinear equalizer calculates the sum of mu ltidimensional
+convolutions with Volterra kernels up to an order of P . Since high-order Volterra
+6
+
+===== PAGE 7 =====
+kernels are associated with high complexity, we restrict our explora tion up to kernels
+of order 3. A Volterrra equalizer of order 3 can be described by the following equation:
+yi = w0 +
+M ∗1∑
+m1=−M ∗1
+xi+m1 · w1(m1 + M ∗1 )+
+M ∗2∑
+m1=−M ∗2
+M ∗2∑
+m2=−M ∗2
+xi+m1 · xi+m2 · w2(m1 + M ∗2 , m2 + M ∗2 )+
+M ∗3∑
+m1=−M ∗3
+M ∗3∑
+m2=−M ∗3
+M ∗3∑
+m3=−M ∗3
+xi+m1 · xi+m2 · xi+m3 · w3(m1 + M ∗3 , m2 + M ∗3 , m3 + M ∗3 ) ,
+where x is the input sequence, y is the output sequence, Mp is the memory length of
+the pth order kernel, M ∗p = ⌊Mp / 2⌋, ⌊·⌋ declares the ﬂoor operator, w1 are the ﬁrst-
+order weights, w2 are the second-order weights and w3 are the third-order weights.
+Similar to the CNN-based and the linear equalizer, the Volterra equaliz er is trained
+in a supervised fashion with MSE loss and Adam optimizer.
+3.4 Design Space Exploration Framework
+To explore this design space of various CNN conﬁgurations, we desig n a framework
+that allows us to automatically evaluate multiple conﬁgurations which a re compared
+in terms of communication performance and complexity. Further, t he framework fea-
+tures cross-layer analysis by providing an estimate of the achievab le throughput. Thus
+hardware metrics are already included in the topology search, which greatly reduces
+the development cycles since multiple models can already be discarded in an early
+design phase.
+As conﬁgurable hyperparameters of the CNN, we select the numbe r of layers L, the
+kernel size K, the number of channels C, and the symbols calculated in parallel Vp. We
+train each conﬁguration three times for 10 000 iterations with an init ial learning rate of
+0.001 with the Adam optimizer and the MSE loss. After training, the high est achieved
+BER of the three training runs and the corresponding multiply-accu mulate (MAC)
+operations per input symbol of each conﬁguration are determined by our framework.
+This way, a trade-oﬀ between communication performance and har dware complexity
+can be found.
+For the linear equalizer and the Volterra equalizer, we explore the de sign space by
+varying the number of taps. While this corresponds to a one-dimens ional exploration
+for the linear equalizer, the Volterra equalizer contains taps in thre e dimensions. Sim-
+ilar to the CNN, we evaluate the complexity of both equalizers based o n the number
+of MAC operations to calculate one output symbol.
+3.5 Results of Design Space Exploration
+In Fig. 2, the results of the design space exploration are shown. Our design space for
+the CNN is spanned by the following four dimensions: symbols calculate d in parallel
+7
+
+===== PAGE 8 =====
+Vp ∈ { 1, 2, 4, 8, 16}, network depth L ∈ { 3, 4, 5}, kernel size K ∈ { 9, 15, 21} and the
+number of channels C ∈ { 3, 4, 5}. Thus, overall 135 diﬀerent models are trained and
+evaluated. The average MAC operations per symbol MAC sym can be calculated as
+follows:
+MACsym = K · CVp + (L − 2) · K · C · CVp + K · CNos .
+For the linear equalizer, the design space is spanned by the number o f taps
+M ∈ { 3, 5, 9, 17, 25, 41, 57, 89, 121, 185, 249, 377, 505, 761, 1017} and for the Volterra
+equalizer by the number of taps of each order M1 ∈ { 3, 9, 15, 25, 35, 55, 75, 89, 121},
+M2 ∈ {1, 3, 9, 15, 25, 30, 35} and M3 ∈ {1, 3, 9, 15}.
+101 102 10310−5
+10−4
+10−3
+10−2
+10−1
+100
+200 MHz
+MAC operations per symbol
+Bit error rate (BER)
+CNN
+Volterra
+FIR
+Fig. 2 : Results of design space exploration of the diﬀerent equalization ap proaches.
+The maximal MAC sym to achieve the throughput of 40 GBd with a clock frequency
+of 200 MHz is given by the vertical red line. The Pareto optimal models of the CNN-
+based equalizer, the Volterra kernel, and the FIR ﬁlter are connec ted by the dotted,
+solid, and dashed lines respectively.
+8
+
+===== PAGE 9 =====
+The Pareto optimal models of each approach correspond to the mo st promising can-
+didates for implementation since they provide the best trade-oﬀ be tween complexity
+and communication performance.
+Further, the framework approximates the maximal MAC sym to achieve the required
+throughput Treq of 40 GBd based on the clock frequency fclk, and the available digital
+signal processors (DSPs) of our target device as follows:
+MACsym,max = DSPavailTreq · fclk · 1.2 .
+A factor of 1 .2 is introduced since some arithmetic operations are implemented
+using look-up table (LUT) resources instead of DSPs which increase s the total number
+of feasible MAC operations. Note that the equation is an approximat ion, mostly based
+on previous investigations and experiments, speciﬁcally designed fo r our hardware
+architecture. The equation might not be universally applicable to oth er hardware
+architectures or use cases.
+Previous experiments showed that a clock frequency above 200 MH z often results in
+timing violations. Thus, in our design-space exploration, we set the lim it for MAC sym
+to the value which corresponds to an approximated throughput of 40 GBd with a
+clock frequency of 200 MHz. As a result, in Fig. 2 we can see that for a ﬁxed com-
+plexity in terms of MAC operations per symbol, the Pareto optimal CN N models are
+outperforming the linear equalizer starting from a BER of around 10 −2 with respect
+to communication performance. Only when constrained to really low c omplexities of
+around 20 MAC operations per symbol, the linear equalizer provides a lower BER. It
+can also be seen that the linear equalizer’s performance saturates at a BER of around
+Conv1D: K = 9, S = 8, P = 10
+Batchnorm
+ReLU
+Conv1D: K = 9, S = 1, P = 10
+Batchnorm
+ReLU
+Conv1D: K = 9, S = 2, P = 10
+C = 5
+C = 5
+Vp = 8
+Fig. 3 : Final topology of the CNN-based equalizer with three layers, wher e K corre-
+sponds to the kernel size, S to the stride, P to the padding, and Vp to the symbols
+calculated in parallel
+9
+
+===== PAGE 10 =====
+10−4. This is probably the result of non-linear distortions of the optical ﬁ ber and CD
+since those eﬀects can not be fully compensated by a linear equalizer . In contrast to
+the FIR ﬁlter, the Volterra kernel introduces non-linearity in the e qualization process.
+This way, similar to the CNN, it is able to compensate for non-linear dist ortions. Thus,
+with suﬃcient complexity, the Volterra kernel provides a lower BER t han the FIR ﬁl-
+ter. However, for similar complexity, the Volterra kernel is outper formed by multiple
+CNN conﬁgurations in terms of communication performance.
+For our hardware implementation, we select the conﬁguration with t he lowest BER
+while satisfying our throughput requirements of 40 GBd with a clock f requency of
+200 MHz. This conﬁguration is highlighted by the black circle and corre sponds to a
+model with Vp = 8, L = 3, K = 9, and C = 5, as visualized in Fig. 3. In Fig. 2,
+we can see that the BER achieved by a linear equalizer with the same co mplexity
+as the CNN is around four times higher, while the Volterra’s BER is more than one
+order of magnitude higher. This shows that our CNN topology is well s uited for the
+equalization of the optical ﬁber channel.
+3.6 Performance for the Magnetic Recording Channel
+To show the applicability of the CNN-based equalizer to diﬀerent applic ation sce-
+narios, we train the CNN selected in the design space exploration for the magnetic
+recording channel presented in Sec. 2.2. We model the SNR of the bad-quality chan-
+nel with 20 dB. Similar to the high-throughput channel, we compare F IR-ﬁlter-based
+equalizers and Volterra-based equalizers to our CNN approach in te rms of complexity
+and communication performance.
+The results are shown in Fig. 4. The CNN achieves a BER of 8 .4 · 10−3 while the
+linear FIR ﬁlter’s BER with similar complexity is 9 .6 · 10−3. Thus the gap between
+the two equalization approaches is much smaller as compared the opt ical ﬁber chan-
+nel. This is reasonable since the main advantage of the CNN lies in the co mpensation
+of non-linear distortions which are not present in the simulated magn etic recording
+101 102 103
+10−2
+10−1
+MAC operations per symbol
+Bit error rate (BER)
+Selected CNN model FIR ﬁlter Volterra
+Fig. 4 : Complexity and communication performance of the selected model as com-
+pared to conventional FIR ﬁlters and Volterra kernels for the mag netic recording
+channel
+10
+
+===== PAGE 11 =====
+channel. Thus, for the linear distortions of this channel, the FIR ﬁlt er achieves compa-
+rable performance. However, the CNN still slightly outperforms th e conventional FIR
+ﬁlter with similar complexity in terms of communication performance. T he Volterra
+equalizer provides similar performance as the FIR ﬁlter, with the dra wback of slightly
+higher complexity. The results show that even though the CNN topo logy is selected
+based on the high-throughput channel, it still achieves suﬃcient pe rformance for other
+channels. This further demonstrates the high ﬂexibility of CNN-bas ed equalizers.
+4 Quantization
+In addition to the network topology, another essential aspect of an eﬃcient ANN
+implementation on resource-constrained devices is the quantizatio n of weights and
+activations. In contrast to the 32-bit ﬂoating-point format used in software, each value
+on the FPGA is represented in ﬁxed-point format with arbitrary dec imal and fractional
+width on the FPGA.
+To explore the quantization eﬃciently, we include an automated quan tization
+approach in our framework, similar to the one proposed in [ 20]. Therefore, the loss
+function is modiﬁed to simultaneously learn the precision of each layer while optimiz-
+ing the accuracy of the ANN during training. This is achieved by using a diﬀerentiable
+interpolation of the bit-widths, which allows to train them using backp ropagation.
+Similar to [ 20], we include a quantization trade-oﬀ factor (QLF) in the loss functio n,
+which determines how aggressively to quantize. This enables eﬃcient exploration of
+the trade-oﬀ between bit width and communication performance.
+The quantization-aware loss can be described by the following equat ion:
+loss = 1Sin
+Sin∑
+i=1
+(yi − xi)2 + QLF · Bp + Ba2 ,
+where Sin is the input sequence length, y = ( y1, y2, . . .) are the predicted symbols,
+x = (x1, x2, . . .) are the transmitted symbols, B p is the average number of bits of the
+trainable parameters and B a is the average number of bits of the activations.
+In contrast to [ 20], where an integer representation together with a scaling factor
+that is coupled to the bit-width of the values is learned, we adjust th e algorithm to
+separately learn the integer and fraction width. This way, there is n o need to scale
+the values in hardware during computation, as the numbers are dire ctly represented
+by their corresponding ﬁxed-point value and can directly be mapped to our hardware
+architecture. With the help of our framework, we perform a quant ization analysis for
+the most promising CNN model found in our design space exploration.
+Our training process for quantization can be divided into three step s:
+1. Full precision training: Perform training in full precision to ﬁnd a we ll-initialized
+model for quantization,
+2. Bit-width-aware training: Train bit width of weights and activation s and optimize
+communication performance simultaneously,
+3. Fine-tuning: Fix bit width and perform further training iterations to improve
+communication performance.
+11
+
+===== PAGE 12 =====
+In Fig. 5, the training of the bit widths is shown for diﬀerent QLFs. In the ﬁrs t
+phase, the bit width is ﬁxed to 32 bit, where 16 bits are used for the in teger and 16 bits
+for the fractional part. In the second phase, the bit widths are r educed linearly until
+they saturate at diﬀerent values for each QLF. In the ﬁne-tuning phase, there is a small
+increase in bit width again, since they get ﬁxed to the next highest int eger. The corre-
+sponding BER of the CNN is shown in Fig. 6. It can be seen that the BER is reduced
+continuously for all QLFs until training iteration 4000. Starting fro m this iteration,
+the low bit width starts to sacriﬁce the communication performance of the CNNs.
+Especially for a QLF of 0 .5 and 0 .005, the BER increases dramatically. For a QLF of
+0.005 and 0 .0005 there is only a slight increase in BER. However, this increase can be
+compensated in the ﬁne-tuning phase, where the quantized model nearly achieves the
+same BER as the full precision model. As a result of the quantization- aware training,
+our FPGA hardware architecture is based on a model with around 13 bits for weights
+0 2 ,000 4 ,000 6 ,000 8 ,000 10 ,000 12 ,000 14 ,0000
+10
+20
+30
+40
+1 2 3
+Training iterations
+Average activation bits
+QLF: 0.5
+QLF: 0.05
+QLF: 0.005
+QLF: 0.0005
+Fig. 5: Course of the average activation bit width during the three phase s of quantized
+training for diﬀerent QLFs.
+0 2 ,000 4 ,000 6 ,000 8 ,000 10 ,000 12 ,000 14 ,000
+10−4
+10−3
+10−2
+10−1
+100 1 2 3
+Training iterations
+Bit error rate (BER)
+QLF: 0.5
+QLF: 0.05
+QLF: 0.005
+QLF: 0.0005
+Fig. 6 : Course of the BER during the three phases of quantized training f or diﬀerent
+QLFs. The BER of the full precision model is given by the gray horizon tal line.
+12
+
+===== PAGE 13 =====
+and 10 bits for activations with approximately the same communicatio n performance
+as the full precision model.
+5 Hardware Architecture
+In this section, the FPGA hardware architecture of our CNN-base d equalizer is pre-
+sented. We mainly focus on the high-throughput requirements of t he optical ﬁber
+channel, but also show how the architecture can be applied to other application
+scenarios.
+5.1 High-Throughput Architecture
+The main target of our hardware implementation is to increase the th roughput to
+meet the requirements of the 40 GBd optical communication channe l. To satisfy the
+strict throughput requirements, it is essential to use the FPGA’s r esources eﬃciently
+by increasing the utilization. Thus, the aim of our hardware architec ture is to boost
+parallelism on all implementation levels. All those diﬀerent levels of para llelism are
+illustrated in Fig. 7. The ﬁrst level of parallelism is based on our streaming hardware
+architecture, where each of the L layers is implemented as an individual hardware
+instance. This way, the data is processed in a pipelined fashion, wher e each layer
+corresponds to a separate pipeline stage. Thus each layer can sta rt its operation as
+soon as the ﬁrst inputs are received which increases the throughp ut and the utilization
+of the available resources.
+The core of our hardware architecture is a custom convolutional la yer that is also
+optimized for high parallelism. The convolution operation can be descr ibed by:
+yo,j =
+Ic∑
+i=0
+K−1
+2∑
+k=− K−12
+xi,j+k · wi,o,k ∀o ∈ Oc , (2)
+where x is the input, y the output, w the kernel, K the kernel size, Ic the number
+of input channels and Oc the number of output channels. From ( 2), it can be seen
+that the convolutional layer oﬀers multiple possibilities to apply spatia l parallelism:
+on the level of input channels Ic, on the level of output channels Oc and on the kernel
+level K. Our hardware architecture of the convolutional layer exploits all of those
+parallelization options to achieve maximal throughput, as shown on t he right of Fig.
+7. Thus, it can achieve a throughput of one symbol per clock cycle. S ince all of our
+layers are pipelined, this is also the throughput achieved by one hard ware instance of
+the CNN. Another level of parallelism that is exploited by our implement ation is the
+number of CNN instances Ni. We place and connect multiple instances of the CNN in
+one design to further boost the throughput. Therefore, the inp ut is split into multiple
+streams, so each instance operates on a subset of the input sequ ence and produces a
+subset of the output sequence. Splitting and merging the sequenc e introduces further
+challenges, as explained later in Sec. 6. In Fig. 7, we can see that increasing parallelism
+is a major objective across multiple design layers: starting from the topology, where
+Vp symbols are calculated in parallel, over the pipelined layers L and the parallelism
+13
+
+===== PAGE 14 =====
+Fig. 7 : Applied levels of parallelism of our hardware architecture illustrated for four
+instances.
+with respect to K, Oc and Ic in the convolutional layer, up to the number of hardware
+instances Ni. This way several symbols are processed in parallel which is essentia l to
+reach the required throughput. In particular, the maximal throu ghput Tmax in Gbit/s
+of our implementation is given as
+Tmax = Ni · Vp · fclk .
+We refer to maximal throughput here, as this throughput is only th e theoretical upper
+limit, as explained later in Sec. 6.
+5.2 Flexibility of Hardware Architecture
+As described in Sec. 5.1, our implementation is well-suited for high-throughput sce-
+narios. Additionally, due to the ﬂexible design of our hardware archit ecture, it can also
+be applied to applications that operate at lower data rates. For tho se applications,
+reducing the power consumption or targeting low-cost FPGAs might be more relevant
+than increasing throughput. To also satisfy those requirements, our hardware archi-
+tecture allows for variable DOPs based on the parallelization levels pre sented in Sec.
+5.1. One example of a channel with a limited maximal throughput is the Pro akis-B
+magnetic recording channel as described in Sec. 2.2. In the following, we show how our
+hardware architecture is able to adapt to less strict throughput r equirements. As an
+implementation platform, we select the low-cost FPGA Xilinx XC7S25-1 CSGA324.
+14
+
+===== PAGE 15 =====
+For each hardware instance, parallelism can be applied to the input ch annels DOPI,
+the output channels DOP O, and to the kernel DOP K. The ﬁnal DOP is then given as:
+DOP = DOP I · DOPO · DOPK. However, the individual DOPs are constrained by the
+hardware architecture as
+Ic ≡ 0 mod DOP I,
+Oc ≡ 0 mod DOP O,
+DOPK ∈ {1, K}.
+For our CNN topology this results in DOP ∈ {1, 5, 10, 25, 225}. In Fig. 8a, the resource
+utilization on the target FPGA for diﬀerent DOPs is shown. It can be s een that primar-
+ily more LUTs and DSPs are required with higher DOP since more MAC ope rations
+are performed in parallel. For a DOP of 255, all available DSPs are used , thus the
+MAC operations are implemented using LUTs which increases the LUT u tilization
+above 100 %. Further, Vivado HLS implements the trainable paramet ers using block
+random access memories (BRAMs) for the smaller DOPs and uses LUT resources as
+storage for the larger DOPs. To summarize, Fig. 8a shows that our hardware archi-
+tecture is also well suited for low-cost FPGAs as it can be adapted to exploit the
+available hardware resources.
+In Fig. 8b, we show how the DOP inﬂuences the dynamic power consumption and
+the throughput of the implementation. A lower DOP results in fewer M AC operations
+per clock cycle leading to lower throughput and lower power consump tion. It can
+be seen that one instance of the CNN on the XC7S25-1CSGA324 can be adjusted
+to achieve a throughput in the range of 4 Mbit ·s−1 to 110 Mbit ·s−1 while the power
+ranges from 0 .1 W to 0 .2 W.
+1 5 10 25 225
+0
+50
+100
+DOP
+Utilization (%)
+LUT
+BRAM
+DSP
+FF
+(a) Resource utilization after syn-
+thesis.
+0 50 100
+0.1
+0.15
+0.2
+DOP: 1
+DOP: 5
+DOP: 10
+DOP: 25
+Throughput (MBd /s)
+Power (W)
+(b) Dynamic power consumption
+vs. throughput
+Fig. 8 : Resource utilization and power consumption vs. throughput on th e Xilinx
+XC7S25-1CSGA324 for diﬀerent DOPs.
+15
+
+===== PAGE 16 =====
+CNN CNN
+Vp
+2·Vp
+SSM
+Ni·Vp
+MSM
+2·Vp
+Ni·Vp
+...
+Vp
+OGM
+Ni·Vp
+Ni·Vp
+ORM
+...
+...
+...
+....CNN CNN CNN CNN CNN CNN
+SSM
+SSM SSM SSM
+SSM
+SSM
+MSM
+MSM
+MSM
+MSM
+MSM MSM
+Fig. 9 : Partitioning of the input sequence across multiple CNN instances.
+5.3 Stream Partitioning
+As explained in Sec. 5.1, for the high-throughput scenario our architecture provides
+a high level of parallelism, especially with respect to the number of CNN hardware
+instances. Splitting a stream of input symbols across those instanc es is not straightfor-
+ward, since the ISI of the channel introduces an interdependenc e between consecutive
+symbols. Thus each CNN instance needs to operate on a continuous sequence of input
+symbols. Therefore, we design a hardware module for splitting the in put stream (split
+stream module (SSM)) and a hardware module for merging the outpu t streams (merge
+stream module (MSM)), as shown in Fig. 9.
+Each SSM takes an input stream and splits it into two streams of equa l length.
+Multiple of those modules are arranged hierarchically to feed data to every CNN
+instance in a round-robin fashion. Due to the interdependence bet ween consecutive
+symbols, splitting the input stream results in an increased BER at the border region
+of each sequence. Thus, the overlap generate module (OGM) adds an overlap to each
+sub-sequence. This way, the BER is approximately constant for th e complete stream.
+Afterwards, the MSMs combine the divided sequences into one outp ut stream. Then,
+the overlap is discarded by the overlap remove module (ORM). We arr ange the SSMs
+and MSMs in hierarchical fashion instead of just implementing one mod ule which
+operates on Ni streams. This improves the routability and timing of the design. Using
+only one module greatly increases the length of the paths from SSM a nd MSM to each
+16
+
+===== PAGE 17 =====
+of the CNN instances. In combination with regions of high congestion , this results in an
+enormous net delay, limiting the achievable clock frequency. By intro ducing multiple
+SSMs and MSMs, the critical paths are shortened, which increases the achievable clock
+frequency and therefore the obtainable throughput.
+6 Sequence Length Optimization
+As described in Sec. 5.3, each input sequence is divided into multiple sub-sequences
+of length ℓinst which are forwarded to the individual instances. However, choosin g an
+optimal ℓinst under given application constraints is not straightforward. On the one
+side, an overlap of symbols is added at the beginning and the end of ea ch sub-sequence.
+From this point of view, maximizing ℓinst results in the highest throughput since the
+overall overlap is minimized. On the other side, increasing ℓinst also increases the
+latency of the equalizer, which may violate low-latency constraints in applications like
+high-frequency trading or telemedicine. Thus it is important to choo se ℓinst carefully,
+as described in the following.
+6.1 Timing Model
+To optimize ℓinst, we perform a detailed timing analysis of our hardware architecture .
+First, we analyze how many overlap symbols need to be added at the b eginning and
+end of each sequence to compensate for the BER increase. For a C NN, the receptive
+ﬁeld corresponds to the input symbols taken into account to predic t each output.
+Thus, at the beginning and end of each sequence, half of the recep tive ﬁeld needs to
+be added as overlap. Based on the formula presented in [ 21], the number of overlap
+symbols for our network topology is calculated as
+osym = (K − 1) · (1 + Vp · (L − 1))2 .
+However, this overlap needs to be added before the ﬁrst SSM by th e OGM, where the
+stream has a width of Ni · Vp and has to be dividable by Nos, which equals to 2 in our
+case. Thus, the actual overlap can be calculated as
+oact = nextEven
+(⌈ osym
+Vp · Ni
+⌉)
+· Vp · Ni .
+Therefore, the actual sequence length that needs to be proces sed including overlap
+is given as
+ℓol = ℓinst + 2 · oact .
+As a second step, we analyze how ℓol inﬂuences the time to ﬁll the pipeline tinit,
+afterwards, we explain how this aﬀects the latency of each symbol.
+In Fig. 10, we show how ℓol and therefore ℓinst impact the total time t to process one
+sequence. This time can be split into tinit and tp and is illustrated for four instances.
+Since the width of the output streams of an SSM is half the width of th e input stream
+and the sequences of length ℓol/Vp are written alternately to each output, the writing
+17
+
+===== PAGE 18 =====
+Fig. 10 : Illustration of the processing time tp and the time for ﬁlling the pipeline tinit
+for four CNN instances
+to the second output stream only starts after ℓol/(2·Vp) clock cycles. A similar behavior
+can be observed for each stage of the hierarchically arranged SSM s. Therefore, tinit,
+corresponding to the time where the last CNN instance starts proc essing, is given by
+tinit = log 2(Ni) · ℓol2 · Vp · fclk .
+Thus, it can be seen that tinit increases linearly with ℓol and ℓinst. Is it important to
+determine tinit, as it directly inﬂuences the latency to process one symbol λsym, which
+is given as the sum of the latency for splitting λspl, processing λpro and merging λmer.
+As the CNN is fully parallelized and there is no stalling in the merging of str eams,
+λpro and λmer are neglectable. In contrast, for splitting, a stream of higher widt h is
+converted into streams of lower width, which results in stalling and inc reased latency.
+The maximum symbol latency can therefore be approximated as the time tinit to ﬁll
+the pipeline:
+λsym ≈ tinit = log2(Ni) · ℓol2 · Vp · fclk = log2(Ni) · (ℓinst + 2 · oact)2 · Vp · fclk . (3)
+From ( 3), it can be seen that higher ℓinst negatively impacts the symbol latency
+λsym. From this point of view, it would be beneﬁcial to set ℓinst as small as possible.
+However, since oact is ﬁxed and is added to each sub-sequence of length ℓinst, the
+total number of symbols to process by the CNN instances grows wit h shorter ℓinst.
+This is directly reﬂected in the processing time for one sequence of le ngth ℓin, which
+is calculated as
+tp = ℓinℓinst · Ni · ℓinst + 2 · oactVp · fclk = ℓinNi · Vp · fclk · (1 + 2 · oactℓinst ) .
+The processing time is inversely proportional to the net throughpu t:
+Tnet = ℓintp = Ni · Vp · fclk1 + 2·oactℓinst . (4)
+18
+
+===== PAGE 19 =====
+Thus, the net throughput grows with larger ℓinst. In summary, both the symbol
+latency λsym and the throughput Tnet increase with ℓinst, therefore a trade-oﬀ exists
+when optimizing for throughput and latency.
+6.2 Optimization Framework
+Based on the equations presented in the previous section, we prop ose a framework to
+select the best ℓinst for the given application requirements. In our case, the throughp ut
+is a hard constraint that needs to be satisﬁed, while latency is an obj ective we want to
+minimize. Thus, the framework selects the minimal ℓinst which satisﬁes the throughput
+requirements.
+The framework is shown in Fig. 11. Part of the framework, in particular the lookup
+table which maps the required throughput Treq to the optimal sub-sequence length
+ℓinst, is implemented as a module on the FPGA. This way, the best ℓinst can be
+selected during runtime individually for each sequence to process. T he lookup table is
+provided by a lookup-table-generator based on the timing model pr esented in Sec. 6.1.
+The timing model is derived from a detailed analysis of the hardware ar chitecture and
+therefore introduced hardware awareness to the LUT-Generat or. This information is
+fed back to the hardware by selecting ℓinst. This way, our framework is also based on
+a cross-layer design methodology.
+7 Results
+In the following, the results of our timing model, our high-throughpu t (HT) FPGA
+implementation, and our low-power (LP) FPGA implementation are pre sented. The
+main goal of our high-throughput hardware implementation is to ach ieve the through-
+put required for equalizing the 40 GBd optical communication channe l. As the channel
+data is captured with an upsampling factor of Nos = 2 at the receiver, this corre-
+sponds to 80 Gsamples /s at the input of our equalizer. To allow for such high data
+rate, we choose the least complex CNN model still satisfying our BER requirements
+in combination with multiple levels of parallelism of our FPGA architecture . Further-
+more, we make use of our timing model and framework to estimate th e number of
+instances needed to achieve the required throughput. As a hardw are platform for the
+high throughput channel, we select the high-performance FPGA Xilin x XCVU13-P
+with a huge amount of available resources, to allow for extremely high parallelism. In
+Fig. 11 : Illustration of framework used to optimize sequence length per ins tance ℓinst.
+19
+
+===== PAGE 20 =====
+0 2 ,000 4 ,000 6 ,000 8 ,0000
+10
+20
+ℓinst
+λsym (µs)
+16 Instances
+32 Instances
+64 Instances
+0 2 ,000 4 ,000 6 ,000 8 ,0000
+50
+100
+80
+ℓinst
+Tnet (Gbit/s)
+Fig. 12 : Left: Plot of the sequence length ℓinst against the symbol latency λsym.
+Right: Plot of the sequence length ℓinst against the net throughput Tnet. On the right,
+the maximal theoretical throughput is given by the horizontal das hed lines
+contrast, for the LP FPGA implementation of the equalizer for the m agnetic record-
+ing channel, the Xilinx XC7S25-1CSGA324 FPGA is used. For both implem entations,
+Vitis HLS in combination with Vivado 2022.2 is used.
+7.1 Timing Model Validation
+In the following, we validate the correctness of our timing model by c omparing it
+to real timing measurements. Moreover, we evaluate how many CNN instances are
+needed to achieve a throughput of 80 Gsamples /s with a clock frequency of 200 MHz.
+In Fig. 12 we show how ℓinst inﬂuences the symbol latency λsym and the net throughput
+Tnet. The blue stars are based on simulations of the hardware, while the b lack graphs
+correspond to our timing model. The horizontal lines of the through put plot give the
+maximal theoretical throughput Tmax as ℓinst → ∞.
+It can be seen that both the latency as well as the throughput incr ease with a higher
+number of instances Ni. While the latency grows linearly with the sequence length ℓinst,
+the throughput saturates for ℓinst → ∞. The gap between Tmax and Tnet increases with
+Ni for a ﬁxed ℓinst, which shows that it is necessary to select a larger ℓinst when increas-
+ing Ni to reduce the inﬂuence of the overlap symbols. Further, it is shown that our
+equations are close to the actual measurements. In particular, t he diﬀerence between
+measurements and model is only around 6 % for latency and 0 .1 % for throughput,
+which validates the accuracy of our timing model. Thus, based on our model, we can
+reliably predict that at least 64 instances are needed to achieve the required through-
+put of 80 Gsamples /s. In addition, it can be seen that ℓinst has a signiﬁcant impact on
+Tnet. Thus, ℓinst is an important factor to consider for increasing performance, wh ich
+justiﬁes the use of our framework to satisfy throughput require ments.
+20
+
+===== PAGE 21 =====
+7.2 High-Throughput Implementation Results
+Based on our timing model, we know that at least 64 instances are nee ded to achieve
+the required throughput. As a result of our detailed design space e xploration and our
+advanced hardware architecture, we are actually able to place 64 p arallel instances of
+the CNN model presented in Sec. 3.1 on the board. The instances are connected by
+63 SSMs and MSMs, respectively, to compose a common input and out put stream.
+The maximal achievable clock frequency for the design is 200 MHz. Th us, the maximal
+throughput is given by:
+Tmax = Ni · Vp · fclk = 64 · 8 samples · 200 MHz = 102 Gsamples/s ˆ= 51 GBd .
+Based on our framework presented in Sec. 6.2, the minimal ℓinst to achieve a net
+throughput of 80 Gsym /s is determined, which is 7320. Choosing this sequence length
+results in the minimal symbol latency of only 17 .5 µs, while satisfying the throughput
+requirements.
+In the following, we show the resource usage of our hardware arch itecture on the
+Xilinx XCVU13-P FPGA. In Table 1, we give the utilization of LUTs, ﬂip-ﬂop (FF),
+DSP, and BRAM after place and route. It can be seen that the reso urces with the
+highest utilization are DSPs and BRAMs. DSPs are utilized for the MAC o peration in
+the convolutional layers, while the BRAMs are mainly used for splitting and merging
+the input streams. Increasing the number of instances further t o achieve higher uti-
+lization results in routing congestion and a lower clock frequency, ev entually reducing
+the achievable throughput.
+7.3 Platform Comparison
+In the following, we compare the throughput, latency, and power c onsumption achieved
+by our HT and LP FPGA implementations to other hardware platforms . As platforms
+we select the Nvidia RTX 2080 Ti high-performance GPU, the Nvidia AG X Xavier
+embedded GPU, and the Intel Core i9-9900KF high-performance C PU. For the CPU
+and the GPU, we increase the batch size and therefore the symbols per batch (SPB)
+up to the point where the throughput does not improve further. F or the FPGAs, the
+SPB is ﬁxed by the hardware architecture to 512 for the HT implemen tation and to 8
+for the LP implementation. For fair comparison, for the GPUs we do n ot only evaluate
+the standard PyTorch implementation but also provide results for a n optimized GPU
+implementation. This implementation is based on the Nvidia library Tenso rRT which
+builds a highly optimized model for faster inference. The optimization s performed by
+TensorRT include quantization, layer and tensor fusion, and kerne l tuning.
+T able 1: Utilization
+LUT FF DSP BRAM
+% absolute % absolute % absolute % absolute
+68.06 1 176 156 30.39 1 050 179 78.52 9648 78.79 2118
+21
+
+===== PAGE 22 =====
+103 104 105 106 107
+10−3
+10−2
+10−1
+100
+101
+102
+103
+×4500
+Symbols per batch
+Throughput (GBd)
+RTX PT AGX PT HT FPGA CPU
+RTX TRT AGX TRT LP FPGA
+40 GBd
+12 GBd
+5.5 GBd
+1.7 GBd
+0.5 GBd
+0.15 GBd
+4 MBd
+Fig. 13 : Comparison of the throughput of the CNN-based equalizer, runn ing on GPU,
+CPU and FPGA. PT refers to the PyTorch and TRT refers to the Ten sorRT models.
+7.3.1 Throughput
+In Fig. 13, the throughput of the diﬀerent platforms is compared. For similar SPB, the
+HT FPGA outperforms the CPU and all GPU implementations by orders of magni-
+tude. For instance, the HT FPGA achieves a 4500 times higher throu ghput than the
+RTX TensorRT model for 400 SPB. The throughput of the LP FPGA is in the same
+order of magnitude as the AGX TensorRT model, the RTX PyTorch mo del, and the
+CPU for SPB < 1000. However, for large SPB, the throughput of the high-perfo rmance
+platforms is much higher than that of the LP FPGA.
+It can also be seen that TensorRT highly optimizes the throughput o f the CNN
+models on GPU. Especially for low batch sizes, the throughput is arou nd one order
+of magnitude higher as compared to the PyTorch model for both th e RTX Ten-
+sorRT model and the AGX Tensor RT model. For all implementations, t he throughput
+increases linearly for low SPB and saturates for high SPB. The FPGA’s throughput is
+constant over the whole range of SPB since the parallelization is ﬁxed by the hardware
+architecture. Thus, parallelization does not increase with batch siz e but each batch is
+calculated sequentially on the FPGA. The highest throughput achiev ed by the con-
+ventional platforms is 12 GBd by the RTX TensorRT implementation. H owever, even
+for high SPB, the FPGA outperforms the RTX TensorRT model by 10 times while
+the high-performance CPU is outperformed by more than two orde rs of magnitude.
+7.3.2 Latency
+In Fig. 14, the latency of the diﬀerent implementations is compared. It can be seen
+that even for low SPB, the latency of the GPUs and CPU is more than o ne order
+of magnitude higher than that of the LP FPGA and around 5 × higher than that
+of the HT FPGAs. This gap increases for higher SPB up to a factor of 52 between
+22
+
+===== PAGE 23 =====
+103 104 105 106 107
+10−4
+10−3
+10−2
+10−1
+100
+101
+102
+×63
+×52
+Symbols per batch
+Latency (ms)
+RTX PT AGX PT HT FPGA CPU
+RTX TRT AGX TRT LP FPGA
+Fig. 14 : Comparison of the latency of the CNN-based equalizer, running on GPU,
+CPU and FPGA. PT refers to the PyTorch and TRT refers to the Ten sorRT models.
+the HT FPGA and the Nvidia AGX with the TensorRT model. As already se en in
+the throughput plot, TensorRT provides improved performance a s compared to the
+default PyTorch model. Speciﬁcally, it decreased the latency of the models by around
+one order of magnitude.
+7.3.3 Power
+Besides throughput and latency, we compare the power of the diﬀe rent implementation
+approaches. For the FPGAs, the power is given by the Vivado power estimation tool,
+whereas for the Nvidia RTX GPU and the CPU we measure the power us ing the
+PyJoules library [ 22]. For the Nvidia AGX platform, the power is obtained based on
+the jetson-stats package [ 23]. The results are shown in Fig. 15. It can be seen that
+the power consumption of the LP FPGA solution is orders of magnitud e lower as
+compared to all other approaches. The AGX platform’s power cons umption lies in
+between the two FPGA approaches. Its power consumption is near ly constant up to
+106 SPB, and from there on it starts to increase signiﬁcantly. This is pro bably caused
+by under-utilization of the GPU for the small CNN topology for low bat ch sizes. The
+power consumption of the HT FPGA is around 2 × higher than that of the Nvidia
+AGX. For the high performance CPU and GPU, the power increases u p to 93 W and
+250 W respectively.
+7.3.4 Summary
+In summary, the comparison shows that our ﬂexible FPGA architect ure is able to
+provide eﬃcient solutions for low-power and high-throughput applic ation scenarios.
+In particular, the HT FPGA achieves higher throughput than all oth er platforms,
+including the high-performance GPU, even for very high SPB. Moreo ver, the LP FPGA
+23
+
+===== PAGE 24 =====
+103 104 105 106 107
+10−1
+100
+101
+102
+103
+Symbols per batch
+Power (W)
+RTX PT AGX PT HT FPGA CPU
+RTX TRT AGX TRT LP FPGA
+26 W
+250 W
+11 W
+93 W
+0.1 W
+Fig. 15 : Comparison of the power consumption of the CNN-based equalizer , running
+on GPU, CPU and FPGA. PT refers to the PyTorch and TRT refers to the TensorRT
+models.
+provides much lower power consumption as the other platforms. Ma in reason for the
+superior performance of the FPGAs is probably the eﬃcient CNN infe rence hardware
+architecture, which is perfectly adapted to the speciﬁc CNN topolo gy. In contrast, the
+other platforms provide a more general architecture that can als o be utilized for other
+algorithms and use cases.
+To conclude, the results show that the FPGA as a platform, in combin ation with
+a hardware architecture based on optimizations across all design la yers, can provide a
+promising solution for implementing ANN-based algorithms for commun ications.
+8 Conclusion
+In this work, we present the FPGA implementation of a high-through put CNN-based
+equalizer for optical communications. The implementation is based on optimization
+across all design layers, beginning with an extensive design-space e xploration of the
+CNN, followed by a detailed quantization analysis, and culminating in the design of
+an eﬃcient hardware architecture. As a result, the high-through put FPGA implemen-
+tation of our equalizer achieves a BER around 4 × lower than that of a conventional
+linear equalizer while meeting the high-throughput requirements of a 40 GBd com-
+munication channel. Moreover, we demonstrate the ﬂexibility of our custom hardware
+architecture by successfully applying our approach to a magnetic r ecording with a
+focus on low cost and low power. Further, we present a framework that optimizes the
+sequence length per instance to reduce the equalizer’s latency und er given through-
+put constraints. Finally, we compare our hardware implementation t o optimized CPU
+and GPU implementations and show that the HT FPGA achieves a throu ghput that
+24
+
+===== PAGE 25 =====
+is three orders of magnitude higher than that of the high-perform ance GPU for a sim-
+ilar batch size. Moreover, we demonstrate that the same hardwar e architecture can
+also be applied to a low-power scenario, where an embedded GPU is out performed in
+terms of power consumption.
+Declarations
+Funding
+This work was carried out in the framework of the CELTIC-NEXT pro ject AI-
+NET-ANTILLAS (C2019/3-3) and was funded by the German Feder al Ministry of
+Education and Research (BMBF) under grant agreements 16KIS1 316 and 16KIS1317
+as well as under grant 16KISK004 (Open6GHuB).
+Conﬂict of interest
+The authors have no competing interests as deﬁned by Springer, o r other interests that
+might be perceived to inﬂuence the results and/or discussion repor ted in this paper.
+Author contribution
+The authors’ contributions are as follows:
+JN: design space exploration, hardware implementation, result eva luation, wrote the
+original draft. CF, VL, SR: assembled the experimental setup, pe rformed the experi-
+ments to generate the dataset. CF, VL, LS, SR, NW: detailed draf t review and editing.
+SR, LS, NW: idea and formulation of research goals, acquisition of fu nding.
+References
+[1] Bayvel, P., Maher, R., Xu, T., Liga, G., Shevchenko, N.A., Lavery, D ., Alvarado,
+A., Killey, R.I.: Maximizing the optical network capacity. Philosophical T ransac-
+tions of the Royal Society A: Mathematical, Physical and Engineerin g Sciences
+374(2062), 20140440 (2016)
+[2] Ahmet Yazar, H.A. Seda Dogan Tusha: 6G vision: An ultra-ﬂexible p erspec-
+tive. ITU Journal on Future and Evolving Technologies 1, 121–140 (2020)
+https://doi.org/10.52953/IKVY9186
+[3] Viswanathan, H., Mogensen, P.E.: Communications in the 6G era. IE EE Access
+8, 57063–57074 (2020) https://doi.org/10.1109/ACCESS.2020.2981745
+[4] Zerguine, A., Shaﬁ, A., Bettayeb, M.: Multilayer perceptron-bas ed DFE with
+lattice structure. IEEE Transactions on Neural Networks 12(3), 532–545 (2001)
+[5] Schaedler, M., Bluemm, C., Kuschnerov, M., Pittal` a, F., Calabr` o, S., Pachnicke,
+S.: Deep neural network equalization for optical short reach comm unication.
+Applied Sciences 9(21) (2019)
+25
+
+===== PAGE 26 =====
+[6] Ney, J., Hammoud, B., D¨ orner, S., Herrmann, M., Clausius, J., ten Brink, S.,
+Wehn, N.: Eﬃcient FPGA implementation of an ANN-based demapper us ing
+cross-layer analysis. Electronics 11(7) (2022)
+[7] Khan, F.N., Fan, Q., Lu, C., Lau, A.P.T.: An optical communication’s pe rspective
+on machine learning and its applications. Journal of Lightwave Techn ology 37(2),
+493–516 (2019)
+[8] Amari, A., Dobre, O.A., Venkatesan, R., Kumar, O.S.S., Ciblat, P., Jao u¨ en, Y.:
+A survey on ﬁber nonlinearity compensation for 400 Gb/s and beyon d optical
+communication systems. IEEE Communications Surveys & Tutorials 19(4), 3097–
+3113 (2017) https://doi.org/10.1109/COMST.2017.2719958
+[9] Kuon, I., Rose, J.: Quantifying and Exploring the Gap Between FPG As and
+ASICs. Springer, New York (2010)
+[10] Freire, P.J., Srivallapanondh, S., Anderson, M., Spinnler, B., Bex, T., Eriksson,
+T.A., Napoli, A., Schairer, W., Costa, N., Blott, M., Turitsyn, S.K., Prileps ky,
+J.E.: Implementing neural network-based equalizers in a coherent o ptical trans-
+mission system using ﬁeld-programmable gate arrays. Journal of L ightwave Tech-
+nology 41(12), 3797–3815 (2023) https://doi.org/10.1109/JLT.2023.3272011
+[11] Kaneda, N., Chuang, C.-Y., Zhu, Z., Mahadevan, A., Farah, B., Be rgman, K.,
+Van Veen, D., Houtsma, V.: Fixed-point analysis and FPGA implementat ion of
+deep neural network based equalizers for high-speed PON. Journ al of Lightwave
+Technology 40(7), 1972–1980 (2022)
+[12] Li, M., Zhang, W., Chen, Q., He, Z.: High-throughput hardware de ployment of
+pruned neural network based nonlinear equalization for 100-Gbps short-reach
+optical interconnect. Opt. Lett. 46(19), 4980–4983 (2021)
+[13] Huang, X., Zhang, D., Hu, X., Ye, C., Zhang, K.: Low-complexity re current neural
+network based equalizer with embedded parallelization for 100-Gbit/ s/λPON.
+Journal of Lightwave Technology 40(5), 1353–1359 (2022)
+[14] Ney, J., Lauinger, V., Schmalen, L., Wehn, N.: Unsupervised ANN- based equalizer
+and its trainable FPGA implementation. In: 2023 Joint European Conf erence on
+Networks and Communications & 6G Summit (EuCNC/6G Summit), pp. 6 0–65
+(2023). https://doi.org/10.1109/EuCNC/6GSummit58263.2023.10188269
+[15] Ney, J., F¨ ullner, C., Lauinger, V., Schmalen, L., Randel, S., Wehn, N.: From
+algorithm to implementation: Enabling high-throughput CNN-based e qualization
+on FPGA for optical communications. In: Silvano, C., Pilato, C., Reiche nbach, M.
+(eds.) Embedded Computer Systems: Architectures, Modeling, an d Simulation,
+pp. 158–173. Springer, Cham (2023)
+26
+
+===== PAGE 27 =====
+[16] Owaki, S., Nakamura, M.: Equalization of optical nonlinear wavefo rm distor-
+tion using neural-network based digital signal processing. In: 201 6 21st Opto-
+Electronics and Communications Conference (OECC) Held Jointly with 2016
+International Conference on Photonics in Switching (PS), pp. 1–3 (2016)
+[17] Estaran, J., Rios-Mueller, R., Mestre, M.A., Jorge, F., Mardoyan , H., Kon-
+czykowska, A., Dupuy, J.-Y., Bigo, S.: Artiﬁcial neural networks fo r linear and
+non-linear impairment mitigation in high-baudrate IM/DD systems. In : ECOC
+2016; 42nd European Conference on Optical Communication, pp. 1 –3 (2016)
+[18] Eriksson, T.A., B¨ ulow, H., Leven, A.: Applying neural networks in optical com-
+munication systems: Possible pitfalls. IEEE Photonics Technology Le tters 29(23),
+2091–2094 (2017) https://doi.org/10.1109/LPT.2017.2755663
+[19] Proakis, J.G., Salehi, M.: Digital Communications, 5th Edition. McGr aw-Hill
+Higher Education, New York (2008)
+[20] Nikolic, M., Hacene, G.B., Bannon, C., Lascorz, A.D., Courbariaux, M., Bengio,
+Y., Gripon, V., Moshovos, A.: Bitpruning: Learning bitlengths for agg ressive and
+accurate quantization. arXiv Prepint (2020)
+[21] Araujo, A., Norris, W.D., Sim, J.: Computing receptive ﬁelds of con volutional
+neural networks. Distill (2019)
+[22] Belgaid, M.c., Rouvoy, R., Seinturier, L.: Pyjoules: Python library that measures
+python code snippets (2019). https://github.com/powerapi-ng/pyJoules
+[23] Bonghi, R.: jetson-stats. https://github.com/rbonghi/jetson stats
+27

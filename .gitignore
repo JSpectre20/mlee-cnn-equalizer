@@ -1,0 +1,30 @@
+# --- regenerable / bulky build outputs -------------------------------------
+# Vivado block-design projects (rebuilt by equalizer/rtl/bd/build_bd.tcl; the
+# overlay and reports of the final build are frozen in equalizer/checkpoints/hw_v1)
+equalizer/rtl/bd/proj_*/
+*.dcp
+*.jou
+*.wdb
+*.pb
+*.rtd
+*.dmp
+.Xil/
+xsim.dir/
+equalizer/rtl/sim/work_*/
+equalizer/rtl/**/vivado*.log
+equalizer/rtl/**/hs_err_*.log
+equalizer/rtl/**/webtalk*
+
+# datasets written by experiment scripts (regenerable from the simulator with fixed seeds;
+# the datasets behind the reported results are frozen in equalizer/checkpoints/fp32_v1)
+equalizer/results/**/*.npz
+
+# --- local-only -------------------------------------------------------------
+backups/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+*.swp
