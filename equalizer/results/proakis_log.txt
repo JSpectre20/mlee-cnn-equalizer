@@ -1,0 +1,22 @@
+﻿                 FIR 3  MAC/sym     3.0  BER MSE-fit 5.667e-02  CE-fit 5.794e-02
+                 FIR 5  MAC/sym     5.0  BER MSE-fit 3.303e-02  CE-fit 3.336e-02
+                 FIR 9  MAC/sym     9.0  BER MSE-fit 1.653e-02  CE-fit 1.643e-02
+                FIR 17  MAC/sym    17.0  BER MSE-fit 1.169e-02  CE-fit 1.145e-02
+                FIR 25  MAC/sym    25.0  BER MSE-fit 1.030e-02  CE-fit 1.011e-02
+                FIR 41  MAC/sym    41.0  BER MSE-fit 9.068e-03  CE-fit 8.904e-03
+                FIR 57  MAC/sym    57.0  BER MSE-fit 8.955e-03  CE-fit 8.797e-03
+                FIR 89  MAC/sym    89.0  BER MSE-fit 8.961e-03  CE-fit 8.809e-03
+               FIR 121  MAC/sym   121.0  BER MSE-fit 8.963e-03  CE-fit 8.869e-03
+    Volterra (9, 3, 3)  MAC/sym    51.0  BER MSE-fit 2.536e-02  CE-fit 8.738e-03
+   Volterra (13, 5, 3)  MAC/sym    73.0  BER MSE-fit 2.162e-02  CE-fit 5.690e-03
+   Volterra (15, 5, 5)  MAC/sym   150.0  BER MSE-fit 2.157e-02  CE-fit 3.218e-03
+   Volterra (25, 9, 5)  MAC/sym   220.0  BER MSE-fit 1.944e-02  CE-fit 2.597e-03
+   Volterra (25, 9, 9)  MAC/sym   610.0  BER MSE-fit 1.019e-02  CE-fit 8.332e-04
+  Volterra (35, 15, 9)  MAC/sym   770.0  BER MSE-fit 9.914e-03  CE-fit 8.502e-04
+CNN mse seed 0  BER 6.427e-03  (112s)
+CNN mse seed 1  BER 1.258e-02  (117s)
+CNN mse seed 2  BER 8.835e-03  (115s)
+CNN bce seed 0  BER 7.276e-03  (117s)
+CNN bce seed 1  BER 5.758e-03  (111s)
+CNN bce seed 2  BER 9.299e-03  (115s)
+MLSE reference BER 0.000e+00 over 993600 symbols

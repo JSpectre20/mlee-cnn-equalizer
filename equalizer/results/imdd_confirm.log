@@ -1,0 +1,25 @@
+﻿=== stage confirm ===
+simulated test_fresh.npz: 4M symbols
+fresh test: FIR 57 mse BER 8.333e-04
+fresh test: FIR 57 bce BER 7.820e-04
+fresh test: FIR 121 mse BER 4.485e-04
+fresh test: FIR 121 bce BER 3.782e-04
+18 jobs to run (0 already done) on 6 workers
+[1/18] vp8_L3_K9_C5_bce_s0  MAC 112.5  BER 5.886e-04  (71s)
+[2/18] vp8_L3_K9_C5_mse_s1  MAC 112.5  BER 4.388e-04  (71s)
+[3/18] vp8_L3_K9_C5_mse_s0  MAC 112.5  BER 7.933e-04  (71s)
+[4/18] vp8_L3_K9_C5_mse_s2  MAC 112.5  BER 5.681e-04  (71s)
+[5/18] vp8_L3_K9_C5_bce_s1  MAC 112.5  BER 4.545e-04  (72s)
+[6/18] vp8_L3_K9_C5_bce_s2  MAC 112.5  BER 5.051e-04  (73s)
+[7/18] vp4_L3_K15_C3_mse_s0  MAC 135.0  BER 1.278e-04  (83s)
+[8/18] vp4_L3_K15_C3_mse_s1  MAC 135.0  BER 1.894e-04  (83s)
+[9/18] vp4_L3_K15_C3_mse_s2  MAC 135.0  BER 1.029e-03  (84s)
+[10/18] vp4_L3_K15_C3_bce_s1  MAC 135.0  BER 1.724e-04  (86s)
+[11/18] vp4_L3_K15_C3_bce_s2  MAC 135.0  BER 1.241e-04  (84s)
+[12/18] vp4_L3_K15_C3_bce_s0  MAC 135.0  BER 2.799e-04  (87s)
+[13/18] vp4_L4_K9_C3_mse_s0  MAC 121.5  BER 2.240e-03  (92s)
+[14/18] vp4_L4_K9_C3_mse_s2  MAC 121.5  BER 9.381e-04  (95s)
+[15/18] vp4_L4_K9_C3_mse_s1  MAC 121.5  BER 1.271e-03  (96s)
+[16/18] vp4_L4_K9_C3_bce_s0  MAC 121.5  BER 2.557e-04  (94s)
+[17/18] vp4_L4_K9_C3_bce_s1  MAC 121.5  BER 4.153e-05  (94s)
+[18/18] vp4_L4_K9_C3_bce_s2  MAC 121.5  BER 2.702e-05  (94s)
