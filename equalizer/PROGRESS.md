@@ -13,7 +13,7 @@ This is the single source of truth for project state. Every milestone appends to
   - QAT + integer golden model;
   - SystemVerilog engine + bit-exact full-model testbench (all 5 models PASS, LUT and DSP multipliers) + conv1d_stream unit testbench (16 configurations PASS);
   - Vivado P&R rounds 1-3 on XC7Z020 (best so far 182.3 MHz, ours_bce_w6 LUT, round 2).
-- **Running at the time of writing:** power estimation with simulation activity (SAIF) for the final designs. Final engine = RTL **r8c** (`rtl/src` = `rtl/history/r8c/`). Deployed design = **ours_bce_dfe_w8** (CNN + 2 decision-feedback taps, 8 bit) in the PYNQ-Z2 system (`rtl/bd/proj_ours_bce_dfe_w8_200_dsp1_2clk_r8c/overlay/`), frozen in `checkpoints/hw_v2`, git tag **`v2.0-cnn-dfe-200mhz`** (previous: `v1.0-cnn-200mhz` = CNN only, `checkpoints/hw_v1`). Next: SAIF power -> PYNQ driver notebook and on-board run -> report / poster.
+- **Running at the time of writing:** nothing. Agreed order DFE -> paper model -> power is complete. Final engine RTL r8c; deployed design ours_bce_dfe_w8 (tag `v2.0-cnn-dfe-200mhz`, `checkpoints/hw_v2`). Next: PYNQ driver notebook + on-board BER/throughput run (needs the user at the board), then report and poster.
 - **Backups (2026-10-25):** `checkpoints/fp32_v1` (FP32 models + datasets), `checkpoints/quant_v1` (results/quant + rtl/gen, 92 files), `checkpoints/hw_v1` (r7b RTL, sim/syn/bd scripts, overlay .bit/.hwh, final reports, 31 files); all read-only with SHA-256 MANIFEST.json, made by `scripts/freeze_checkpoints.py` / `scripts/freeze_artifacts.py` (refuse to overwrite a tag). Full source + results archive: `../backups/equalizer_src_2026-10-25_1224.zip` (362 files, excludes datasets / Vivado projects / sim work dirs). Version control: the whole `Project/` folder is a git repository, pushed to the **private** GitHub repo https://github.com/JSpectre20/mlee-cnn-equalizer (branch `main`, GitHub account JSpectre20, `gh` CLI at `C:\Program Files\GitHub CLI\gh.exe`, logged in). Ignored (see `../.gitignore`): Vivado projects `rtl/bd/proj_*`, `*.dcp`, sim work dirs, Vivado logs, datasets written under `results/` (the reported ones are frozen in `checkpoints/fp32_v1`), `backups/`. Commit and push at every milestone, and record the commit id in the log below.
 - **Next:**
   1. Record round-4 P&R results (§5.6). Any config within ~0.5 ns of 200 MHz gets one pass with stronger Vivado directives (opt Explore, place ExtraTimingOpt, phys_opt AggressiveExplore post-place and post-route, route AggressiveExplore) as an optional impl_ooc.tcl argument; otherwise lock in the best passing clock. 200 MHz is the paper's clock (on an UltraScale+ VU13P), not a requirement; a PYNQ DMA design typically runs 100-150 MHz.
@@ -262,6 +262,7 @@ All 11 unit tests pass (8 basics + 3 quant).
   3. PowerShell 5.1 `Set-Content -Encoding utf8` writes a BOM, which xvlog rejects (use .NET `UTF8Encoding($false)`).
   4. xsim `.bat` wrappers split arguments at `=`, so the TB uses `+stallN` and reads .mem files from the run directory.
   5. xsim does not support seeding via `$urandom(seed)`; use `process::self().srandom(seed)`. The `.bat` '=' splitting also breaks `xelab -generic_top`, hence the generated `tb_dsp.svh`.
+  6. Netlist (gate-level) simulation: wait for `glbl.GSR` to fall before releasing reset; xelab / xsim write their own `xelab.log` / `xsim.log`, so scripts must not tee into those names.
 
 ### 5.6 Vivado implementation, XC7Z020-1CLG400, OOC
 - **First pass** (old requant pipeline, LUT multipliers, 200 MHz target; `rtl/syn/out_<model>_5.0ns/`). Timing not met:
@@ -321,6 +322,20 @@ All 11 unit tests pass (8 basics + 3 quant).
 
   - vs the paper's CNN on the same engine: ours_bce_w6 = 23x lower BER with -44% LUT / -45% FF (DSP builds); ours_bce_dfe_w8 = ~1000x lower BER at the same 8 bits with -23% LUT / -23% FF and the same DSP count.
 - **PYNQ-Z2 system with ours_bce_dfe_w8 (r8c, deployed):** core FCLK1 200 MHz **WNS +0.160 ns**, DMA FCLK0 100 MHz WNS +1.778; system 8,416 LUT / 13,148 FF / 43 DSP / 4 BRAM-equivalents (2 RAMB36 + 2 RAMB18); equalizer 5,421 LUT / 8,718 FF / 43 DSP / 0.213 W; system 1.64 W (PS7 1.26 W). r8 reached only 153 MHz (DFE input not registered), r8b 195.6 MHz OOC / zero slack in context (lane mux before the candidate adder), r8c fixes both (details in `rtl/history/CHANGES.md`).
+- **Power with simulated switching activity (SAIF)** (`rtl/power/run_power.ps1`: post-route funcsim netlist simulated with tb_cnn_eq in NETLIST mode at 200 MHz on the `_short` vectors, no stalls, activity logged after the parameter load; `report_power` with the SAIF, 59-68% of nets annotated, the rest propagated; confidence **High**; reports `rtl/power/power_<out_dir>.rpt`). **Every routed netlist is also bit-exact in this gate-level simulation (512/512 outputs).**
+
+| Model | Bits | BER | Build | Total | Dynamic | Dynamic vs paper |
+|---|---|---|---|---|---|---|
+| paper_mse_w8 | 8 | 4.96e-4 | DSP | 0.409 W | 0.302 W | - |
+| paper_mse_w8 | 8 | 4.96e-4 | LUT | 0.495 W | 0.387 W | - |
+| ours_bce_w6 | 6 | 2.18e-5 | DSP | 0.365 W | 0.259 W | -14% |
+| ours_bce_w6 | 6 | 2.18e-5 | LUT | 0.349 W | 0.243 W | -37% |
+| ours_bce_dfe_w8 (r8c, deployed) | 8 | 5.0e-7 | DSP | 0.426 W | 0.318 W | +5% |
+| ours_bce_dfe_w8 (r8b) | 8 | 5.0e-7 | LUT | 0.499 W | 0.390 W | +1% |
+
+  - The vectorless estimates were optimistic (e.g. deployed core 0.220 W -> 0.318 W dynamic); use these SAIF numbers in the report.
+  - Throughput per instance: 200 MHz x ~0.975 samples/cycle / 2 samples/symbol = ~97.5 MBd = ~97.5 Mb/s (PAM2), so dynamic energy per bit = ~2.5 nJ/bit (ours_bce_w6 LUT), ~3.1 nJ/bit (paper_mse_w8 DSP), ~3.3 nJ/bit (ours_bce_dfe_w8 DSP). All builds evaluated at the same 200 MHz clock (paper_mse_w8 itself closes at 187.9 / 196.3 MHz).
+  - Testbench gotcha: in netlist simulation all flip-flops ignore inputs during glbl.GSR (first 100 ns); the TB now waits for GSR before releasing reset (NETLIST mode only). Full-length vectors are too slow at gate level (DSP48E1 models); the `_short` sets are used.
 - **Why BRAM = 0 (by design):**
   1. The parameters are tiny (328 words ours, 668 the paper's), and each cycle a layer needs **all IC·K weights of one output channel at once** (27–45 values in parallel). A BRAM has only 2 read ports, so it would need heavy banking. Flip-flops give full parallel access for about 2–4k bits.
   2. The FIFOs are shallow (job FIFO depth 2, output FIFO depth 16), so Vivado maps them to LUTRAM ("LUT as memory", 536–794).
@@ -453,3 +468,4 @@ All 11 unit tests pass (8 basics + 3 quant).
 - **2026-10-25:** Initialised git at `Project/` and pushed to the private GitHub repo JSpectre20/mlee-cnn-equalizer (9 commits, head e6463e4). The DFE stress test survived an app restart and kept running.
 - **2026-10-25:** DFE stress test finished (9 conditions; CNN+DFE2 best on hard channels, FFE+DFE best at the paper's operating point). Tagged `v1.0-cnn-200mhz`. CNN+DFE2 QAT: W8 integer BER 5.0e-7 (~1000x below the paper's W8 CNN). RTL r8 adds `dfe_stream.sv`; bit-exact; commit 3223c82. Vivado queue (DFE + paper model on r8, PYNQ-Z2 rebuild) launched.
 - **2026-10-25:** Final-engine P&R of the paper model (DSP 187.9 MHz / 7,056 LUT) and CNN+DFE2 timing closure (r8 153 MHz -> r8b input register -> r8c lane select in stage I: 202.4 MHz OOC, PYNQ-Z2 system 200 MHz WNS +0.160). Froze `checkpoints/hw_v2`; tagged `v2.0-cnn-dfe-200mhz` (commit 3e80dd8); untracked Vivado scratch files (040d894).
+- **2026-10-25:** SAIF power flow (`rtl/power/`) and results for all six final builds (commits 0210238, f103361); all routed netlists bit-exact at gate level. ours_bce_w6 -14% (DSP) / -37% (LUT) dynamic power vs the paper's CNN; ours_bce_dfe_w8 ~1000x lower BER at +5% / +1%.
