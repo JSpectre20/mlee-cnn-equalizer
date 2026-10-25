@@ -1,6 +1,8 @@
 # impl_ooc_opt.tcl - impl_ooc.tcl with timing-driven directives, optional retiming and a selectable
 # conv1d_stream source (e.g. a snapshot from rtl/history/).
-# Usage: vivado -mode batch -source rtl/syn/impl_ooc_opt.tcl -tclargs <model> <clock_period_ns> <use_dsp 0|1> [conv_src] [tag] [retime 0|1] [part]
+# Usage: vivado -mode batch -source rtl/syn/impl_ooc_opt.tcl -tclargs <model> <clock_period_ns> <use_dsp 0|1> [conv_src] [tag] [retime 0|1] [part] [postphys 0|1]
+#   postphys  run the post-route phys_opt (default 1). Vivado 2025.2 dies silently in post-route
+#             AggressiveExplore on the 8-bit builds (ours_bce_w8, paper_mse_w8), so those use 0.
 #   conv_src  path to conv1d_stream.sv ("" or "src" = rtl/src/conv1d_stream.sv), or a directory
 #             holding a full RTL snapshot (sync_fifo, conv1d_stream, cnn_eq_core, cnn_eq_top .sv)
 #   tag       suffix of the output folder (default "opt")
@@ -12,7 +14,8 @@ set use_dsp  [lindex $argv 2]
 set conv_src [expr {[llength $argv] > 3 ? [lindex $argv 3] : ""}]
 set tag      [expr {[llength $argv] > 4 ? [lindex $argv 4] : "opt"}]
 set retime   [expr {[llength $argv] > 5 ? [lindex $argv 5] : 0}]
-set part     [expr {[llength $argv] > 6 ? [lindex $argv 6] : "xc7z020clg400-1"}]
+set part     [expr {[llength $argv] > 6 && [lindex $argv 6] ne "" ? [lindex $argv 6] : "xc7z020clg400-1"}]
+set postphys [expr {[llength $argv] > 7 ? [lindex $argv 7] : 1}]
 set here     [file dirname [file normalize [info script]]]
 set rtl      [file dirname $here]
 if {$conv_src eq "" || $conv_src eq "src"} { set conv_src [file join $rtl src conv1d_stream.sv] }
@@ -42,7 +45,7 @@ opt_design -directive Explore
 place_design -directive ExtraTimingOpt
 phys_opt_design -directive AggressiveExplore
 route_design -directive AggressiveExplore
-if {[get_property SLACK [get_timing_paths -max_paths 1 -nworst 1 -setup]] < 0} {
+if {$postphys && [get_property SLACK [get_timing_paths -max_paths 1 -nworst 1 -setup]] < 0} {
     phys_opt_design -directive AggressiveExplore
 }
 
@@ -55,6 +58,6 @@ write_checkpoint -force [file join $out routed.dcp]
 set wns [get_property SLACK [get_timing_paths -max_paths 1 -nworst 1 -setup]]
 set fmax [expr {1000.0 / ($period - $wns)}]
 set fh [open [file join $out summary.txt] w]
-puts $fh "model $model part $part use_dsp $use_dsp period_ns $period WNS_ns $wns fmax_MHz [format %.1f $fmax] conv_src $conv_src retime $retime flow opt"
+puts $fh "model $model part $part use_dsp $use_dsp period_ns $period WNS_ns $wns fmax_MHz [format %.1f $fmax] conv_src $conv_src retime $retime postphys $postphys flow opt"
 close $fh
 puts "SUMMARY model $model use_dsp $use_dsp tag $tag WNS $wns ns -> Fmax [format %.1f $fmax] MHz"

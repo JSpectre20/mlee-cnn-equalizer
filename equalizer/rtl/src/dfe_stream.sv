@@ -7,10 +7,11 @@
 //
 // Look-ahead so the decision loop is a single 2^N_FB:1 mux of one-bit flags:
 //   fbsum[v][p] = sum_k (p[k] ? +fb[v][k] : -fb[v][k])      registered (taps are static)
+//   stage I:  input register (z, lane, last)
 //   stage A:  cand[p] = z + fbsum[v][p],  pos[p] = (cand[p] > 0)
 //   stage B:  pattern = history of decisions (bit k = d[n-1-k] > 0);  u = cand[pattern];
 //             history <= {history, pos[pattern]}  (reset to all -1 after a frame's last symbol)
-// Both stages advance together when the output register is free (one symbol per clock).
+// All stages advance together when the output register is free (one symbol per clock).
 `timescale 1ns/1ps
 module dfe_stream #(
     parameter int VP    = 4,
@@ -48,17 +49,31 @@ module dfe_stream #(
     wire adv = !m_valid || m_ready;
     assign s_ready = adv;
 
+    // stage I: register the input (z arrives through the last layer's FIFO read and lane mux)
+    logic                 i_v, i_last;
+    logic signed [ZW-1:0] i_z;
+    logic [VW-1:0]        i_lane;
+    always_ff @(posedge clk) begin
+        if (adv) begin
+            i_v    <= s_valid;
+            i_last <= s_last;
+            i_z    <= s_z;
+            i_lane <= s_lane;
+        end
+        if (rst) i_v <= 1'b0;
+    end
+
     // stage A: candidates for every decision pattern
     logic                 a_v, a_last;
     logic signed [UW-1:0] cand [NP];
     logic [NP-1:0]        pos;
     always_ff @(posedge clk) begin
         if (adv) begin
-            a_v    <= s_valid;
-            a_last <= s_last;
+            a_v    <= i_v;
+            a_last <= i_last;
             for (int p = 0; p < NP; p++) begin
                 logic signed [UW-1:0] c;
-                c = UW'(s_z) + fbsum[s_lane][p];
+                c = UW'(i_z) + fbsum[i_lane][p];
                 cand[p] <= c;
                 pos[p]  <= (c > 0);
             end

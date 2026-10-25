@@ -219,6 +219,15 @@ Verification:
 - two deliberately broken copies are caught: no history reset at frame end (mismatches exactly at the frame starts, out[64], out[128]) and swapped tap order;
 - unit TB unaffected (conv1d_stream unchanged).
 
+**r8 P&R (ours_bce_dfe_w8, directive flow, 5 ns):** DSP 153.3 MHz (WNS −1.524), 5,460 LUT / 8,629 FF / 43 DSP; LUT 153.2 MHz, 10,346 LUT / 12,363 FF / 3 DSP.
+- Critical path: last layer's output-FIFO read pointer → LUTRAM read → lane mux `z[v]` → stage-A candidate adder (22 bit) → `pos > 0`, 7–10 levels. `dfe_stream` took its input combinationally.
+- paper_mse_w8 on r8: both runs died silently in post-route `phys_opt_design -directive AggressiveExplore` (last logged WNS −0.286 DSP / −0.056 LUT), the same reproducible Vivado crash as ours_bce_w8 DSP earlier.
+
+## r8 → r8b (DFE timing fix)
+- `dfe_stream.sv`: new input register stage I (`i_v`, `i_z`, `i_lane`, `i_last`), so stage A starts from flip-flops. All stages share the enable `adv`, so back-pressure is unchanged; latency +1 cycle.
+- `impl_ooc_opt.tcl`: optional 8th argument `postphys` (default 1); the 8-bit builds use 0 to avoid the post-route phys_opt crash. The `part` argument may be "" for the default.
+- Verification: ours_bce_dfe_w8 and _short × LUT/DSP × stall 30, plus DSP stall 0, PASS; ours_bce_w6 (N_FB = 0) PASS; throughput 0.974.
+
 ## Testbench / script changes made alongside (not part of the RTL snapshots)
 - r5: `tb_cnn_eq.sv` timeout dump no longer prints `jf_count`. `tb_conv1d_unit.sv` gains `DW`/`IN_SIGNED` parameters (macro `UT(i, ic, oc, k, s, aw, dw, sg, ww, last, dsp, ist, ost)`). `impl_ooc_opt.tcl` accepts a snapshot directory as `conv_src`.
 - `tb_cnn_eq.sv`:
