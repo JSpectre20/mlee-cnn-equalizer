@@ -1,0 +1,10 @@
+[project]
+name = "eqsim"
+version = "0.1.0"
+description = "Neural-network equalizers for optical IM/DD links: simulation, training and FPGA export"
+requires-python = ">=3.11"
+dependencies = ["numpy", "scipy", "matplotlib", "torch"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
