@@ -5,3 +5,4 @@ Retry open file channel in 250 ms for file: D:/AMD/2025.2/Vivado/scripts/rt/data
 Retry open file channel in 250 ms for file: C:/Users/Admin/Documents/Bits/3-1/mlee/Project/equalizer/rtl/syn/.Xil/Vivado-8072-Legion-SJ07/realtime\cnn_eq_top.tcl
 Retry open file channel in 250 ms for file: D:/AMD/2025.2/Vivado/scripts/rt/fpga_tcl/rtSynthParallelPrep.tcl
 Retry open file channel in 250 ms for file: D:/AMD/2025.2/Vivado/scripts/rt/data/unimacro/unimacro_vhdl.tcl
+Retry open file channel in 250 ms for file: D:/AMD/2025.2/Vivado/scripts/rt/fpga_tcl/rtSynthCleanup.tcl

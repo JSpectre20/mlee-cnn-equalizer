@@ -1,0 +1,1 @@
+model ours_bce_dfe_w8 fclk_MHz 200 dma_MHz 100 use_dsp 1 WNS_ns 0.160 bit 1 hwh 1

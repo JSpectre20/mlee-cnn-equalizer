@@ -1,0 +1,1 @@
+model ours_bce_dfe_w8 part xc7z020clg400-1 use_dsp 1 period_ns 5.0 WNS_ns 0.060 fmax_MHz 202.4 conv_src C:/Users/Admin/Documents/Bits/3-1/mlee/Project/equalizer/rtl/history/r8c/conv1d_stream.sv retime 0 postphys 1 flow opt
