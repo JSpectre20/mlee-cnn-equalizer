@@ -37,3 +37,8 @@ equalizer/rtl/bd/NA/
 
 # gate-level power simulation work dirs (netlists, SAIF, xsim)
 equalizer/rtl/power/work_*/
+
+# report build outputs and superseded figures
+report/diagrams/build/
+report/figures/unused/
+~$*.docx
