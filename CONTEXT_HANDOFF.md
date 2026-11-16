@@ -88,6 +88,8 @@ The user asked "why not LaTeX". I explained the trade-off and the user chose: **
      - fig12_compare: (a) bubble chart BER vs kLUT, marker area = SAIF dynamic power; (b) DSP builds normalised to the paper (LUT, FF, DSP, dynamic power).
      - fig13_power: stacked SAIF power breakdown (Clocks / Logic / Signals / DSP / Static) for the 6 builds.
      - fig14_verif: verification pyramid (golden → unit TB → full model → mutation → gate level).
+**UPDATE 2026-11-16: the report is DONE** (commit 99d30b4): `report/MLEE_Report.docx` and `report/MLEE_Report.pdf`, 19 pages. Rebuild: `D:\venvs\mlee-eq\Scripts\python.exe report\build_report.py` (runs a Word-measured layout pass, keeps `report/layout.json`; `--no-layout` reuses it), then `powershell -File report\to_pdf.ps1`. Final figure set (9): fig01_pipeline (draw.io), fig02_link, fig04_proakis, fig05_dse, fig06_dfe_heatmap, fig07_quant (matplotlib), fig07_hardware (draw.io; report Fig. 3), fig09_pack_dfe (TikZ; report Fig. 4), fig12_compare. Dropped figures are in report/figures/unused (git-ignored). Diagram sources: report/diagrams/{tikz,drawio}; `report/diagrams/build_diagrams.py` compiles them (Tectonic at D:\tools\tectonic\tectonic.exe, draw.io at %LOCALAPPDATA%\Programs\draw.io). Remaining: team names / IDs / Team ID / Annex A (placeholders), then the poster.
+
 4. **Next steps for the report, in order:**
    1. fix \bmod and re-run the figures, then review every PNG;
    2. write `report/build_report.py` (python-docx on the template), all text content, Tables 1–N;
