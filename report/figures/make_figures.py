@@ -222,7 +222,7 @@ def fig_dse():
     ax.scatter([112.5], [min(pm)], marker="*", s=110, color="black", zorder=5, label=f"paper's CNN (fresh test) {min(pm):.1e}")
     ax.scatter([121.5], [min(ob)], marker="D", s=40, color=ORANGE, edgecolor="black", lw=0.5, zorder=5, label=f"ours vp4 L4 K9 C3 (fresh test) {min(ob):.1e}")
     ax.annotate("", xy=(121.5, min(ob) * 1.25), xytext=(112.5, min(pm) * 0.8), arrowprops=dict(arrowstyle="-|>", color=ORANGE, lw=1.0))
-    ax.text(62, 4e-5, "~16x lower BER\nat equal cost", color=ORANGE, fontsize=6.8, fontweight="bold", ha="center")
+    ax.text(62, 4e-5, "~16x lower BER\nat similar cost", color=ORANGE, fontsize=6.8, fontweight="bold", ha="center")
     ax.axhline(floor, color=LGRAY, lw=0.5)
     ax.text(3.2, floor * 1.25, "0 errors in 2M bits (plotted at 3e-7)", fontsize=5.8, color=GRAY)
     ax.text(3.2, 3e-3, "FIR floor", fontsize=6, color="black")
@@ -254,7 +254,7 @@ def fig_dfe_heatmap():
                 med[i, j] = np.median(v)
     floor = 1e-7
     Z = np.log10(np.maximum(M, floor))
-    fig, ax = plt.subplots(figsize=(TEXTW, 3.15))
+    fig, ax = plt.subplots(figsize=(TEXTW, 2.95))
     im = ax.imshow(Z, cmap="YlGnBu_r", vmin=-7, vmax=-1.5, aspect="auto")
     for i in range(len(conds)):
         best = np.nanargmin(np.where(M[i] == 0, 1e-12, M[i]))
@@ -264,7 +264,7 @@ def fig_dfe_heatmap():
             if j >= 4 and not np.isnan(med[i, j]) and v > 0:
                 txt += f"\n({med[i, j]:.1e})"
             dark = Z[i, j] < -4.6
-            ax.text(j, i, txt, ha="center", va="center", fontsize=5.7, color="white" if dark else "#1a1a1a",
+            ax.text(j, i, txt, ha="center", va="center", fontsize=6.4, color="white" if dark else "#1a1a1a",
                     fontweight="bold" if j == best else "normal")
         ax.add_patch(Rectangle((best - 0.5, i - 0.5), 1, 1, fill=False, ec=ORANGE, lw=1.6))
     ax.set_xticks(range(len(models)), [f"{h}\n{m} MAC" for h, m in zip(heads, macs)], fontsize=6.3)
