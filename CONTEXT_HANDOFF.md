@@ -321,3 +321,134 @@ The user asked "why not LaTeX". I explained the trade-off and the user chose: **
 - OOC P&R: `vivado -mode batch -source rtl/syn/impl_ooc_opt.tcl -tclargs <model> 5.0 <dsp> ../history/r8c <tag> 0 xc7z020clg400-1 <postphys>`.
 - System: `rtl/bd/build_bd.tcl -tclargs <model> 200 1 <tag> 100`. Power: `rtl/power/run_power.ps1 -Model <m>_short -OutDir <out dir>`.
 - Commit: `git add ...; git commit -m "..." -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"; git push`.
+- Note: PROGRESS.md §0 "Next" list is stale (it still lists the block design, KAN, etc.). The true remaining work is in §15 below. Update PROGRESS §0 when the report is done.
+
+---------------------------------------------------------------------------------------------------
+## 10. Modelling details and hyperparameters (for the report's Table 1 / Methodology)
+- **Proakis-B:** RC pulse β = 0.25 (the paper doesn't give it); per-sample SNR at N_os = 2; symbol-spaced h = [0.407, 0.815, 0.407]; PAM2; LS fit data seed 7 (200k symbols); test seed 12345 (1e6 symbols); the CNN trains on fresh data every batch.
+- **IM/DD:** see §4. Electrical SNR 24 dB for the main study; 64 guard symbols per 200k-symbol chunk; AC coupling + unit-std normalisation; cross-correlation alignment. Datasets: train 2M (seed 1), test 2M (seed 2), fresh test 4M (seed 3); stress-test conditions 1M train (seed 101) / 2M test (seed 102); all frozen in `checkpoints/fp32_v1/imdd_data/` (base) or regenerable.
+- **CNN training:** Adam lr 1e-3, 10,000 iterations, batch 32 x 512 symbols (1024 for V_p = 16), crop 32 symbols per edge; weight init seeded by `torch.manual_seed(seed)`; loss MSE (paper) or BCE-with-logits (ours; the output is a logit, the decision is sign(z)). About 94 s per training on 1 CPU thread; sweeps on 6 worker processes.
+- **FIR / Volterra:** closed-form LS (chunked normal equations, ridge 1e-6) or logistic regression (LBFGS from the LS solution, L2 1e-4). MAC counts: FIR = taps; Volterra M1 + 2·P2 + 3·P3 (unique symmetric terms).
+- **CNN MAC (exact, per symbol)** = K·C·N_os/V_p + (L−2)·K·C²·N_os/V_p + K·C (ours 121.5, paper 112.5); the paper's printed formula = exact / N_os (56.25 for its CNN).
+- **QAT:**
+  - BN folded first; LSQ (Esser et al.) fake quant with round-half-up;
+  - calibration: input percentile 0.9999, activations 0.999, weights per-channel max-abs;
+  - QAT Adam lr 2e-4, 4000 iterations from the frozen FP32 best seed (paper_mse = vp8_L3_K9_C5_mse_s1, paper_bce = ..._bce_s1, ours_mse = vp4_L4_K9_C3_mse_s2, ours_bce = ..._bce_s2);
+  - integer requant: S = clip(floor(log2(65535/r)), 1, 40), M = round(r·2^S) (M_BITS = 16);
+  - biases rounded to s_act·s_w;
+  - integer vs fake-quant decisions agree > 99.9 % (~0.6 % of logits differ by 1 LSB from float32 ties).
+- **CNN+DFE training:** teacher forcing (true past symbols in the feedback), BCE, same Adam settings; feedback taps on the logit scale (fb ~ −1.5 / −3.3); evaluation always with the model's own decisions; for the integer model d = −1 before each frame.
+- **Export rule:** ACC_W = max(16, worst-case bits over layers incl. bias, taps bits + 1); `export_rtl.py` asserts M in (0, 2^16), S in 1..40.
+  - Test vectors: 3 frames x 1024 symbols (long), 8 x 64 (`_short`), taken from test_fresh.
+  - ours_bce_dfe_w8: B_IN = 8, N_PARAM = 336, ACC_W = 20, s_in = 0.028155358508229256.
+- **Decisions to explain in the report:**
+  - **RTL rather than HLS** (user decision 2026-10-24): finer control (bit widths, pipelining, DSP packing, guaranteed 1 sample/clk), the user's own U-Net flow (`../../ps-1/U_net/zybo_z7_10`: generic SV engine + converter + WEIGHT_FORMAT.md + golden model + xsim TBs), resume value. The paper used HLS; fairness is handled by putting the paper's CNN and ours through the SAME RTL engine.
+  - Weights are runtime-loadable over AXI-Lite (models swap without re-synthesis; enables I4 adaptation); shape fixed by the generated package.
+- **Course caution:** check the course AI-assistance policy; the user must understand everything for the poster / viva; the report must state member roles.
+
+## 11. Improvement roadmap: status of every idea (for the report's Future Work)
+| ID | Idea | Status |
+|---|---|---|
+| I3a | cross-entropy training | **done (headline)** |
+| I5 | decision feedback (FFE+DFE baseline, CNN+DFE hybrid, RTL) | **done, deployed** |
+| I1 | LUT-native KAN equalizer on raw ADC codes (KANELÉ-style), iso-BER FPGA comparison | deferred by the user (a possible follow-up paper). Novelty partial: Fischer et al. OFC 2025 did KAN for PON in simulation; no FPGA KAN equalizer found |
+| I2 | ADC ENOB (3–8 bit) x equalizer co-design, ADC power by Walden FoM P = FoM·2^ENOB·f_s | not done (future work); `IMDDChannel(adc_bits=...)` already exists |
+| I3b | soft outputs / LLR → GMI, post-FEC BER | future work |
+| I4 | drift (fiber length, power, bias) + output-layer-only LMS adaptation on the board | future work (runtime weights make it possible) |
+| — | short Viterbi after the equalizer (FFE57+VA4 1e-5 shown), NN+MLSE | evidence only |
+| — | parallel / look-ahead DFE cost at 40 GBd (the paper's 64 instances) | future work, discuss in the report |
+| — | ensembling / LR schedule against seed variance; distillation; transfer across fiber lengths | future work |
+| — | hardware ablations: constant-weight build (shift-add), DSP cascade (PCIN) instead of fabric adder trees, HLS build of the paper's CNN | future work |
+
+## 12. PLAN: on-board FPGA run (PYNQ-Z2), ready to execute
+**Goal:** a measured on-board result for the report and poster: the deployed core computes bit-exact outputs on the real board; BER on real stored channel data; measured throughput. Needs the user at the board.
+
+**Files to copy to the board** (e.g. `/home/xilinx/jupyter_notebooks/cnn_eq/`):
+- `cnn_eq.bit` + `cnn_eq.hwh` from `equalizer/checkpoints/hw_v2/rtl/bd/proj_ours_bce_dfe_w8_200_dsp1_2clk_r8c/overlay/` (or from the rtl/bd project folder). They must have the same base name.
+- `params.mem` (336 hex words) from `rtl/gen/ours_bce_dfe_w8/`.
+- A test-vector file to be generated (TODO: write `equalizer/scripts/make_board_vectors.py`):
+  - int8 input codes x_q = quantize_input(rx) with s_in = 0.028155358508229256 for e.g. 64 frames x 4096 symbols (8192 samples per frame) from `checkpoints/fp32_v1/imdd_data/test_fresh.npz`;
+  - golden outputs (sat16 u from `IntegerModel.forward_int` per frame);
+  - true bits (idx).
+  - Save as `board_vectors.npz` (needs only numpy on the board).
+- The notebook (TODO: write `equalizer/board/cnn_eq_pynq.ipynb` + a plain `cnn_eq_pynq.py`).
+
+**Overlay facts** (from the hwh):
+- IP instance names: `dma` (axi_dma 7.1, base 0x4040_0000, no scatter-gather, 23-bit length field → ≤ 8 MB per transfer), `eq` (module_ref cnn_eq_axi, base 0x4000_0000, 64 KB AXI-Lite), cc_in / cc_out / dw_in / dw_out, rst_eq, rst_ps7_100M.
+- HP0 sees DDR 0x0000_0000–0x1FFF_FFFF.
+- FCLK0 = 100 MHz, FCLK1 = 200 MHz (PYNQ sets them from the hwh when the Overlay loads).
+- No interrupts are connected, so use DMA polling (`dma.sendchannel.wait()` polls).
+
+**Register map** (eq, offsets): 0x00 ID (expect 0x4E455131 "NEQ1"), 0x04 SHAPE {L, K, C, VP} = 0x04090304 for ours, 0x08 NPARAM (336), 0x0C CTRL (bit 0 = datapath soft reset, keeps params), 0x10 FRAMES completed, 0x14 BUSY_CYC (200 MHz cycles with a frame in flight), 0x18 IN_BEATS, 0x1C OUT_BEATS; param word i at 0x4000 + 4·i (write only).
+
+**Data formats:**
+- **MM2S:** a uint8/int8 array; the 32-bit DMA word → 4 samples, the lowest byte first (axis_dwidth_converter 32→8 sends byte 0 first); one DMA transfer = one frame (DMA asserts TLAST at the end of the transfer).
+- **Frame contract:** length = n_sym x 2 samples with n_sym a multiple of VP = 4 (e.g. 4096 symbols = 8192 bytes); frames are processed independently with zero padding and the DFE history reset to −1.
+- **S2MM:** int16 array of n_sym values (2 per 32-bit word, the low half first); decision bit = (value > 0).
+
+**Notebook steps:**
+1. `from pynq import Overlay, allocate`; `ol = Overlay('cnn_eq.bit')`; `eq = ol.eq` (DefaultIP; use `eq.read(off)` / `eq.write(off, val)`); `dma = ol.dma`.
+2. Check ID / SHAPE / NPARAM.
+3. Write the 336 param words (`eq.write(0x4000 + 4*i, int(w, 16))`). Optionally read back FRAMES = 0, then CTRL soft reset (write 1 then 0).
+4. `inb = allocate(shape=(n_samp,), dtype=np.int8)`; `outb = allocate(shape=(n_sym,), dtype=np.int16)`.
+5. Per frame: copy the codes into inb; `dma.recvchannel.transfer(outb)`; `dma.sendchannel.transfer(inb)`; `dma.sendchannel.wait()`; `dma.recvchannel.wait()`.
+6. Compare outb with golden (expect bit-exact), count bit errors vs the true bits (crop 64 symbols per frame edge, like the simulations).
+7. Throughput: time N back-to-back frames with `time.perf_counter()`. Expect ≤ ~97.5 MSym/s core-limited; DMA 32-bit @ 100 MHz = 400 MB/s in. Python per-transfer overhead will dominate for small frames, so use large frames (e.g. 64k–1M symbols, ≤ 8 MB) and also report BUSY_CYC / 200 MHz as the pure core time.
+8. Report: on-board BER (should match the integer model: ~5e-7 order, so needs ≥ 4M symbols to see errors), bit-exact agreement, throughput, and optionally board power with a USB power meter.
+
+**Possible pitfalls:**
+- PYNQ image version (v2.7 / v3.x) parsing a Vivado 2025.2 hwh: usually fine. If `ol.eq` isn't found, use `MMIO(0x40000000, 0x10000)` and `pynq.lib.dma.DMA` via `ol.ip_dict`.
+- Cache coherency is handled by `allocate` + DMA (flush / invalidate inside transfer).
+- DMA S2MM must be armed before MM2S.
+- Ensure n_sym % 4 == 0.
+
+## 13. PLAN: lab fiber-optic trainer kit run (optional; likely after submission)
+**Components** (what to ask the lab):
+1. Optical Tx module (LED or laser driver) with an EXTERNAL modulation input (TTL or analog; note its bandwidth / rise time).
+2. Fiber patch cord(s) + connectors / mating sleeves (type POF or MM glass, length; a longer spool is a bonus).
+3. **Optical Rx module (photodiode + TIA) with an ANALOG output.** Critical: many kits only expose a comparator / digital output, which is useless here.
+4. Power supply (base unit).
+5. Leads: BNC / test-point to jumper, common ground.
+- Optional: a variable optical attenuator (sweeps received power, like an SNR sweep) and a USB oscilloscope with CSV export.
+- Ask the lab for: the kit model number, Tx input type / bandwidth, whether the Rx has an analog output, the fiber type / length / connectors, attenuator / scope availability.
+
+**Signal chain options:**
+- **Tx drive:**
+  - (a) a PL pattern generator on a Pmod pin: needs a small new block design (PRBS / OOK at a chosen rate with a preamble);
+  - (b) a lab function / arbitrary waveform generator playing a PRBS file;
+  - (c) the PYNQ audio path is not suitable for optics.
+- **Rx capture:**
+  - (a) PYNQ-Z2 XADC (~1 MSa/s, 12-bit; Arduino A0–A5 through on-board dividers, so check the schematic for the range; needs an XADC Wizard + DMA or MMIO polling in a new overlay) → about 0.5 MBd max at 2 samples/symbol;
+  - (b) a USB scope at high rate → CSV → laptop (any rate).
+- **Choose the symbol rate close to the kit's bandwidth limit** so the channel has real ISI; otherwise every equalizer gets zero errors and the result is meaningless.
+
+**Processing:**
+1. Capture separate train / test recordings (different PRBS seeds).
+2. Resample to 2 samples/symbol; frame / timing sync by cross-correlating a known preamble; remove DC; normalise.
+3. Quantise to int8 with a fitted s_in.
+4. Train FIR / FFE+DFE / CNN / CNN+DFE with the existing scripts (DatasetChannel from captured chunks: `eqsim.data.save_dataset` format, rx float32 at N_os = 2, idx int8).
+5. Report BER vs received power (attenuator).
+6. Optionally export the CNN to RTL (`export_rtl.py`) and run the captured data through the board (§12 flow) for a fully real demonstration.
+
+**Framing in the report:** a real IM/DD channel at low rate (dispersion negligible; ISI from LED / PD bandwidth), complementing the 40 GBd simulation.
+
+## 14. PLAN: PYNQ-Z2 audio loopback (alternative real channel, no breadboard)
+- 3.5 mm male-to-male cable, headphone-out → line-in, ADAU1761 codec at a fixed 48 kHz.
+- Stock `AudioADAU1761.play()` / `record()` are blocking and sequential, so write a full-duplex C helper (a modified `bypass()` loop that plays a buffer while recording). Fallback: laptop headphone out → PYNQ line-in with `record()` (≤ 60 s, interleaved int32 L/R) + preamble / timing recovery.
+- Signal: PAM at 24–48 kBd near the ~21 kHz codec cutoff, driven near clipping (nonlinearity); separate captures for train / val / test.
+- Optional hybrid: apply the fiber CD + square-law model in software before playback.
+- Framing: a second REAL nonlinear ISI channel (like the paper's magnetic-recording example), NOT an optical emulation.
+- Verify the board has both jacks.
+
+## 15. Remaining deliverables and schedule (deadline Fri 20 Nov 2026)
+1. **Report** (in progress, §0): figures → build_report.py → docx → PDF review → commit. Target: done by 17–18 Nov. The user fills in names / IDs / Team ID / contributions (Annex A).
+2. **Poster** (LaTeX `MLEE_Poster_Template.tex`, tikzposter A0 portrait class, Helvetica; the course says A3 colour poster, so it prints scaled):
+   - blocks: Summary, Introduction and Objectives, Background, Methodology (`fig_method.png`), Experimental Setup, Results (`fig_result1.png`, `fig_result2.png`), Discussion, Conclusion and Future Work, References, Report and Code (optional QR `qr_code.png`); delete the "Poster Guidelines" block;
+   - logos `bits_logo.png`, `dept_logo.jpg`;
+   - numbers and figures must match the report exactly (template Annex B guide);
+   - suggested figures: method = fig01_pipeline or fig11_system; result1 = fig05_dse or fig12_compare; result2 = fig06_dfe_heatmap or fig10_journey;
+   - needs a TeX engine: ask the user, then `winget install` Tectonic (recommended; XeTeX engine, fine for tikzposter / helvet / fontenc) or MiKTeX; or the user compiles on Overleaf.
+3. **On-board run** (§12): optional but strong; needs the user at the board (~1 h). If done, add the measured numbers to the report and poster.
+4. **Running code:** the repo (private GitHub) + README. Maybe add a top-level README at `Project/` describing the layout and how to reproduce.
+5. **Fiber kit** (§13) and **audio** (§14): after submission unless trivially available.
+6. After each milestone: commit + push; a Haiku subagent updates PROGRESS.md; consider a new zip in `backups/`.
