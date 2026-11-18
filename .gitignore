@@ -43,3 +43,8 @@ report/diagrams/build/
 report/figures/unused/
 ~$*.docx
 report/poster/*.log
+
+# on-board run package: regenerable copies (scripts/make_board_vectors.py)
+equalizer/board/board_vectors.npz
+equalizer/board/cnn_eq.bit
+equalizer/board/cnn_eq.hwh
