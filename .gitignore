@@ -42,3 +42,4 @@ equalizer/rtl/power/work_*/
 report/diagrams/build/
 report/figures/unused/
 ~$*.docx
+report/poster/*.log
