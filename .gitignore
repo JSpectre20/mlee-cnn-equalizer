@@ -52,3 +52,12 @@ equalizer/board/cnn_eq.hwh
 # notes and documentation kept locally only
 *.md
 !/README.md
+
+# report and poster build tooling: kept locally, the repo holds the deliverables
+report/*
+!report/MLEE_Report.docx
+!report/MLEE_Report.pdf
+poster/*.py
+poster/*.drawio
+poster/*.png
+!poster/bits_logo.png

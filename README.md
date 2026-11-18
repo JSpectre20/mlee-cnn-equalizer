@@ -43,16 +43,15 @@ equalizer/                 simulation, learning and hardware
   rtl/power/               gate-level SAIF power flow
   rtl/history/             every RTL revision r2-r8c as a full snapshot
   board/                   PYNQ-Z2 driver (cnn_eq_pynq.py) and notebook for the on-board run
-report/                    report (docx + pdf) and the scripts that build it (figures, diagrams, layout)
-poster/                    A0 poster on the course template, with its figure scripts
+report/                    the project report (docx + pdf)
+poster/                    A0 poster: LaTeX source on the course template, its figures (PDF) and the PDF
 papers/                    the replicated paper and the cited demonstrator paper (PDF)
 Project submission templates/   course templates
 ```
 
 ## Setup
 
-Python 3.14 with numpy, scipy, matplotlib, pytest, torch (CPU), plus python-docx, pymupdf and latex2mathml for the
-report. Hardware: AMD Vivado / xsim 2025.2 (XC7Z020 is covered by the free edition). Run the Python code from
+Python 3.14 with numpy, scipy, matplotlib, pytest and torch (CPU). Hardware: AMD Vivado / xsim 2025.2 (XC7Z020 is covered by the free edition). Run the Python code from
 `equalizer/` with `PYTHONPATH` set to that folder.
 
 ```bash
@@ -72,8 +71,7 @@ python -m pytest -q
 | Implementation | `vivado -mode batch -source rtl/syn/impl_ooc_opt.tcl -tclargs <model> 5.0 <dsp> ...` |
 | PYNQ-Z2 system | `vivado -mode batch -source rtl/bd/build_bd.tcl -tclargs <model> 200 1 <tag> 100` |
 | Power | `rtl/power/run_power.ps1 -Model <model>_short -OutDir <build>` |
-| Report (from the project root) | `python report/figures/make_figures.py`; `python report/diagrams/build_diagrams.py`; `python report/build_report.py`; `report/to_pdf.ps1` |
-| Poster (from the project root) | `python poster/make_poster_figs.py`; `python poster/gen_poster_hw.py`; then `tectonic MLEE_Poster.tex` or `pdflatex` in `poster/` |
+| Poster (in `poster/`) | `pdflatex MLEE_Poster.tex` (twice) or `tectonic MLEE_Poster.tex` |
 
 Git tags `v1.0-cnn-200mhz` and `v2.0-cnn-dfe-200mhz` mark the two hardware versions.
 
