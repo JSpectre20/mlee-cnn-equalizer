@@ -365,6 +365,8 @@ The user asked "why not LaTeX". I explained the trade-off and the user chose: **
 | — | hardware ablations: constant-weight build (shift-add), DSP cascade (PCIN) instead of fabric adder trees, HLS build of the paper's CNN | future work |
 
 ## 12. PLAN: on-board FPGA run (PYNQ-Z2), ready to execute
+**UPDATE 2026-11-18: package built** (commit 74afe2e): everything in `equalizer/board/` (README with the steps). Regenerate the untracked `.bit/.hwh/.npz` with `scripts/make_board_vectors.py` (from equalizer/, PYTHONPATH set). Frames are the 20 fresh-set chunks of 200,000 symbols (one DMA transfer each), so the board must reproduce 2 errors in 3,997,440 bits and match the golden outputs exactly. Expected core throughput ~97.5 MSym/s. When the user returns board_results.json, add the measured numbers to the report (Section 4.1 System paragraph, Table 5, Discussion threats) and the poster (Results caption / Conclusion).
+
 **Goal:** a measured on-board result for the report and poster: the deployed core computes bit-exact outputs on the real board; BER on real stored channel data; measured throughput. Needs the user at the board.
 
 **Files to copy to the board** (e.g. `/home/xilinx/jupyter_notebooks/cnn_eq/`):
