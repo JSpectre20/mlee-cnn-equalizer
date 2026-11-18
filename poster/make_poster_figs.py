@@ -1,8 +1,8 @@
 r"""Poster figures, drawn at their printed size on the A0 poster (column text width ~37 cm) so labels print at
 22-30 pt. Numbers are read from the result files (same sources as the report).
 
-Run from Project/:  $env:PYTHONPATH="equalizer"; D:\venvs\mlee-eq\Scripts\python.exe report\poster\make_poster_figs.py
-Writes report/poster/fig_result1, fig_result2, fig_background (.pdf used by the poster, .png previews).
+Run from Project/:  $env:PYTHONPATH="equalizer"; D:\venvs\mlee-eq\Scripts\python.exe poster\make_poster_figs.py
+Writes poster/fig_result1, fig_result2, fig_background (.pdf used by the poster, .png previews).
 """
 import json
 import sys
@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / "equalizer" / "results"
 OUT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "equalizer"))

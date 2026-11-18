@@ -2,7 +2,7 @@ r"""Build the MLEE project report (report/MLEE_Report.docx) on the course templa
 
 Run from Project/:  D:\venvs\mlee-eq\Scripts\python.exe report\build_report.py
 Figures: report/figures (make_figures.py for data plots, diagrams/build_diagrams.py for diagrams).
-Numbers: equalizer/PROGRESS.md, equalizer/rtl/history/CHANGES.md and the result files read below.
+Numbers: the result files and Vivado reports under equalizer/ (the long tables are read directly below).
 """
 import json
 from collections import defaultdict

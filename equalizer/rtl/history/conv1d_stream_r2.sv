@@ -1,7 +1,7 @@
 // conv1d_stream.sv - one streaming Conv1D layer of the Ney et al. CNN equalizer.
 //
 // Frame semantics are identical to torch Conv1d(padding=K/2) applied to each
-// frame on its own (see rtl/WEIGHT_FORMAT.md and eqsim/quant.py):
+// frame on its own (see eqsim/quant.py, IntegerModel.forward_int):
 //   out[p] = sum_{ic,k} W[oc][ic][k] * x_pad[ic][p*STRIDE + k],  x_pad = PAD zeros | frame | PAD zeros
 //   n_out  = ceil(n_in / STRIDE)
 //

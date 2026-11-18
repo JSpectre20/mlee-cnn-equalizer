@@ -1,5 +1,8 @@
 // cnn_eq_top.sv - CNN equalizer with AXI-Lite parameters/control and AXI-Stream data.
-// Register map and parameter layout: rtl/WEIGHT_FORMAT.md.
+// AXI-Lite register map (32-bit words): 0x00 ID "NEQ1", 0x04 SHAPE {L, K, C, VP}, 0x08 NPARAM,
+// 0x0C CTRL (bit 0 = datapath and counter reset; the parameters are kept), 0x10 FRAMES, 0x14 BUSY_CYC,
+// 0x18 IN_BEATS, 0x1C OUT_BEATS; parameter word i at 0x4000 + 4*i (write only).
+// Parameter layout: scripts/export_rtl.py (build_param_image) and the generated cnn_eq_pkg offsets.
 `timescale 1ns/1ps
 module cnn_eq_top
     import cnn_eq_pkg::*;

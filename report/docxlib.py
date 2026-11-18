@@ -2,7 +2,7 @@
 
 The template uses direct formatting (Arial everywhere), so every helper here reproduces the exact
 paragraph / run / table properties of the template's prototype elements (see
-CONTEXT_HANDOFF.md section 0 and the template itself).
+the template itself).
 
 Inline markup in text strings:
   **bold**   *italic*   ^{sup}   _{sub}   $latex$ (inline Word equation)   [@key] (citation, IEEE numbered)

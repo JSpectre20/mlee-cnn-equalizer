@@ -3,7 +3,7 @@
 After generation the .drawio files are the sources of truth: open them in draw.io desktop to edit by
 hand, then run report/diagrams/build_diagrams.py. Re-running this script overwrites hand edits
 (it refuses unless --force is given).
-Facts: equalizer/PROGRESS.md 5.5-5.6, equalizer/rtl/history/CHANGES.md, rtl/src/*.sv, rtl/gen/ours_bce_dfe_w8.
+Facts: rtl/src/*.sv, rtl/gen/ours_bce_dfe_w8 and the Vivado reports of checkpoints/hw_v2.
 """
 import sys
 from pathlib import Path

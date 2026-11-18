@@ -1,8 +1,8 @@
 r"""Poster version of the hardware figure (report Fig. 3), simplified so that its labels print at about 24 pt on A0
-(8 pt when the poster is printed at A3). Writes report/poster/poster_hw.drawio and exports fig_method.pdf / .png.
+(8 pt when the poster is printed at A3). Writes poster/poster_hw.drawio and exports fig_method.pdf / .png.
 
-Run from Project/:  D:\venvs\mlee-eq\Scripts\python.exe report\poster\gen_poster_hw.py
-Facts as in the report: PROGRESS.md 5.6, rtl/history/CHANGES.md, checkpoints/hw_v2 reports.
+Run from Project/:  D:\venvs\mlee-eq\Scripts\python.exe poster\gen_poster_hw.py
+Facts as in the report: checkpoints/hw_v2 reports and rtl/src.
 """
 import os
 import subprocess
@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / "diagrams" / "drawio"))
+sys.path.insert(0, str(HERE.parent / "report" / "diagrams" / "drawio"))
 from gen_drawio import (BLUE, BROWN, DGREEN, GRAY, GREEN, NAVY, ORANGE, PALE, PGRAY, PGREEN, PORANGE,  # noqa: E402
                         Diagram)
 

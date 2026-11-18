@@ -1,7 +1,7 @@
 r"""All report figures (one consistent style). Run from Project/ with the eqsim venv:
     $env:PYTHONPATH = "equalizer"; D:\venvs\mlee-eq\Scripts\python.exe report/figures/make_figures.py
 Writes report/figures/figNN_*.png (300 dpi, sized for the 15.9 cm text width of the template).
-Data come only from equalizer/results/, equalizer/rtl/ reports and the numbers recorded in PROGRESS.md.
+Data come only from equalizer/results/ and the equalizer/rtl/ Vivado reports.
 """
 import glob
 import json

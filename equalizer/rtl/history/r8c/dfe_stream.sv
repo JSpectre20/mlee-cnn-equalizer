@@ -1,6 +1,6 @@
 // dfe_stream.sv - decision feedback on the serialized equalizer output (improvement I5).
 //
-// Arithmetic (exactly IntegerModel.forward_int with fb set, see rtl/WEIGHT_FORMAT.md):
+// Arithmetic (exactly IntegerModel.forward_int with fb set, eqsim.quant.dfe_int):
 //   u[n] = z[n] + sum_k fb[v][k] * d[n-1-k],   v = lane of symbol n (n mod VP)
 //   d[n] = +1 if u[n] > 0 else -1;  d = -1 before the first symbol of every frame
 // Output: u (signed UW bits) per symbol, tlast passed through.

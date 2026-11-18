@@ -3,7 +3,7 @@
 Files next to this script: cnn_eq.bit + cnn_eq.hwh (overlay), board_vectors.npz (scripts/make_board_vectors.py).
 Run on the board (Jupyter terminal or notebook):   sudo python3 cnn_eq_pynq.py      -> board_results.json
 
-Hardware contract (rtl/WEIGHT_FORMAT.md, checkpoints/hw_v2):
+Hardware contract (rtl/src/cnn_eq_top.sv, checkpoints/hw_v2):
   eq  @ 0x4000_0000  AXI-Lite: 0x00 ID "NEQ1", 0x04 SHAPE {L,K,C,VP}, 0x08 NPARAM, 0x0C CTRL (bit 0 = datapath reset,
                      keeps the parameters), 0x10 FRAMES, 0x14 BUSY_CYC (200 MHz cycles), 0x18 IN_BEATS, 0x1C OUT_BEATS;
                      parameter word i at 0x4000 + 4 i (write only)

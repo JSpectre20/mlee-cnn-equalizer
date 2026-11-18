@@ -1,6 +1,6 @@
 """Quantization-aware training and the integer golden model for the NeyCNN equalizer.
 
-Integer arithmetic (this is the contract the RTL implements, see rtl/WEIGHT_FORMAT.md):
+Integer arithmetic (this is the contract the RTL implements):
 
   input       x_q  = clamp(round_half_up(rx / s_in), -2^(Bin-1)+1, 2^(Bin-1)-1)       signed Bin bits
   layer l     acc  = sum_{ic,k} W_q[oc,ic,k] * a_pad[ic, p*stride + k]                 exact integer

@@ -1,4 +1,4 @@
-"""Export a quantized IntegerModel to RTL artifacts (format: rtl/WEIGHT_FORMAT.md).
+"""Export a quantized IntegerModel to RTL artifacts.
 
 Writes rtl/gen/<name>/:
   cnn_eq_pkg.sv   shape, widths, N_PARAM and per-layer parameter offsets

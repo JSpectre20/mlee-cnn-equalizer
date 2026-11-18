@@ -3,7 +3,7 @@
 // Shape and widths come from package cnn_eq_pkg (rtl/gen/<model>/cnn_eq_pkg.sv),
 // generated per model by scripts/export_rtl.py. Parameters are read from the
 // flat parameter memory `pmem` using the offsets in that package
-// (layout: rtl/WEIGHT_FORMAT.md).
+// (layout: scripts/export_rtl.py, build_param_image).
 `timescale 1ns/1ps
 module cnn_eq_core
     import cnn_eq_pkg::*;
