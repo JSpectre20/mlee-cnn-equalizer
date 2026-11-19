@@ -18,6 +18,10 @@
 \usepackage{graphicx}
 \usepackage{colortbl}
 \usepackage{textcomp}
+% The course prints the poster on A3: the A0 layout of the template is scaled onto an A3 page (same ISO proportions,
+% everything x 0.354), so all sizes below are chosen to stay legible at A3 (body 10 pt, captions 8 pt).
+\usepackage{pgfpages}
+\pgfpagesuselayout{resize to}[a3paper]
 \newcommand{\sci}[2]{#1\,$\times$\,10\textsuperscript{\textminus#2}}   % 5.0 x 10^-7 in the text font
 
 % ---------------------------------------------------------------------
@@ -66,7 +70,9 @@
 % ---------------------------------------------------------------------
 \newcommand{\logoslot}[1]{\includegraphics[height=7cm, width=\linewidth, keepaspectratio]{#1}}
 \newcommand{\fig}[2]{\begin{center}\includegraphics[width=#2]{#1}\end{center}\vspace{-6mm}}
-\newcommand{\figcap}[1]{{\par\centering\small\itshape #1\par}\vspace{4mm}}
+% captions, references and the contact block: 22.5 pt on A0 = 8 pt on the A3 print
+\newcommand{\capsize}{\fontsize{22.5}{27}\selectfont}
+\newcommand{\figcap}[1]{{\par\centering\capsize\itshape #1\par}\vspace{4mm}}
 \setlist[itemize]{leftmargin=1.2em, itemsep=6pt, topsep=4pt, parsep=0pt, before=\raggedright}
 \setlist[enumerate]{leftmargin=1.5em, itemsep=6pt, topsep=4pt, parsep=0pt, before=\raggedright}
 \hyphenpenalty=10000 \exhyphenpenalty=10000   % no hyphenation on a poster
@@ -209,12 +215,12 @@
   \end{tabular}
   \end{center}
   \vspace{-2mm}
-  \figcap{Table 1: Same engine and XC7Z020; Fmax in MHz; dynamic power at 200\,MHz from simulated activity.}
+  \figcap{Table 1: Same engine and XC7Z020; Fmax in MHz; dynamic power at 200\,MHz (simulated activity).}
   \vspace{8mm}
 
   \fig{fig_result2.pdf}{0.86\linewidth}
   \vspace{3mm}
-  \figcap{Figure 3: BER in nine channel conditions (darker = lower; best per row outlined; mult./symbol in brackets).}
+  \figcap{Figure 3: BER in nine conditions (darker = lower; best per row outlined; mult./symbol in brackets).}
 }
 
 \block{Discussion}{
@@ -241,26 +247,23 @@
 }
 
 \begin{subcolumns}
-\subcolumn{0.62}
+\subcolumn{0.56}
 \block{References}{
-  {\small
+  {\capsize\raggedright   % compact entries; the report has the full references with the same numbers
   \begin{enumerate}[leftmargin=2.2em, itemsep=3pt]
-    \item[{[3]}] G.~J. Meslener, ``Chromatic dispersion induced distortion of modulated monochromatic light employing
-          direct detection,'' \emph{IEEE J. Quantum Electron.}, vol.~20, no.~10, pp.~1208--1216, 1984.
-    \item[{[8]}] J. Ney \emph{et al.}, ``CNN-based equalization for communications: Achieving gigabit throughput with
-          a flexible FPGA hardware architecture,'' \emph{Int.\ J. Parallel Program.}, vol.~54, no.~4, 2026
-          (arXiv:2405.02323).
+    \item[{[3]}] G.~J. Meslener, \emph{IEEE J. Quantum Electron.}, vol.~20, no.~10, pp.~1208--1216, 1984.
+    \item[{[8]}] J. Ney \emph{et al.}, ``CNN-based equalization for communications,''
+          \emph{Int.\ J. Parallel Program.}, vol.~54, no.~4, 2026.
     \item[{[9]}] J.~G. Proakis and M. Salehi, \emph{Digital Communications}, 5th ed., McGraw-Hill, 2008.
-    \item[{[15]}] R. Fischer \emph{et al.}, ``Non-linear equalization in 112 Gb/s PONs using Kolmogorov-Arnold
-          networks,'' in \emph{Proc.\ OFC}, 2025.
-    \item[{[16]}] S.~K. Esser \emph{et al.}, ``Learned step size quantization,'' in \emph{Proc.\ ICLR}, 2020.
+    \item[{[15]}] R. Fischer \emph{et al.}, ``Non-linear equalization in 112 Gb/s PONs using KANs,''
+          \emph{Proc.\ OFC}, 2025.
+    \item[{[16]}] S.~K. Esser \emph{et al.}, ``Learned step size quantization,'' \emph{Proc.\ ICLR}, 2020.
   \end{enumerate}}
 }
-\subcolumn{0.38}
+\subcolumn{0.44}
 \block{Report and Code}{
-  {\centering\includegraphics[width=0.45\linewidth]{qr_repo.pdf}\par
-   {\small Code on GitHub}\par\vspace{4mm}}
-  {\small\raggedright
+  {\centering\includegraphics[width=0.56\linewidth]{qr_repo.pdf}\par\vspace{3mm}}
+  {\capsize\raggedright
   \textbf{Contact:} f20240412@\allowbreak pilani.bits-pilani.ac.in\par\vspace{3mm}
   \textbf{Thanks:} Dr. Ritesh Vyas}
 }

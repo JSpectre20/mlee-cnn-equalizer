@@ -44,7 +44,7 @@ equalizer/                 simulation, learning and hardware
   rtl/history/             every RTL revision r2-r8c as a full snapshot
   board/                   PYNQ-Z2 driver (cnn_eq_pynq.py) and notebook for the on-board run
 report/                    the project report (docx + pdf)
-poster/                    A0 poster: LaTeX source on the course template, its figures (PDF) and the PDF
+poster/                    A3 poster (the template's A0 layout scaled to A3): LaTeX source, figures (PDF), the PDF
 papers/                    the replicated paper and the cited demonstrator paper (PDF)
 Project submission templates/   course templates
 ```
