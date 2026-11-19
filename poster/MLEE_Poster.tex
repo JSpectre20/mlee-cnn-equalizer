@@ -74,7 +74,7 @@
 % Headline number for the summary block: #1 colour, #2 number, #3 label
 \newcommand{\kpi}[3]{%
   \begin{tikzpicture}
-    \node[fill=paleblue, draw=#1, line width=3pt, rounded corners=12pt, minimum width=0.23\linewidth,
+    \node[fill=white, draw=#1, line width=3pt, rounded corners=12pt, minimum width=0.23\linewidth,
           minimum height=7.8cm, inner sep=0pt] (b) {};
     \node[anchor=north, text=#1, font=\bfseries\fontsize{60}{66}\selectfont] at ([yshift=-0.7cm]b.north) {#2};
     \node[anchor=north, text width=0.2\linewidth, align=center, font=\fontsize{25}{30}\selectfont]
@@ -87,9 +87,8 @@
 \title{Low-Complexity Neural Network Equalization for Optical Fibre Communication on FPGA}
 % tikzposter measures \@title in an unbreakable box, so the two-line title is set directly in \settitle below
 \newcommand{\posterTitle}{Low-Complexity Neural Network Equalization\\for Optical Fibre Communication on FPGA}
-\author{[Student Name 1] \;\textbullet\; [Student Name 2] \;\textbullet\; [Student Name 3]
-        \;\;|\;\; Team [ID]}
-\institute{Department of Electrical and Electronics Engineering, BITS Pilani, Pilani Campus
+\author{Shreyansh Jain \;\;|\;\; 2024A3PS0412P}
+\institute{Department of EEE, BITS Pilani, Pilani Campus
            \;\textbullet\; MLEE \;\textbullet\; Instructor: Dr. Ritesh Vyas \;\textbullet\; Semester I, 2026--27}
 
 \makeatletter
@@ -108,6 +107,7 @@
 }
 \makeatother
 
+\tikzposterlatexaffectionproofoff   % no "LaTeX + TikZposter" credit in the corner (it touched the last block)
 \begin{document}
 \maketitle
 
@@ -117,8 +117,8 @@
 \column{0.5}
 
 \block{Summary}{
-  We rebuilt the CNN equalizer of Ney et al.\ [8] for a 40\,GBd, 31.5\,km optical link and improved it with a
-  \textbf{decision-aligned loss}, \textbf{decision feedback} and a \textbf{hand-written FPGA engine}.
+  We rebuilt the CNN equalizer of Ney et al.\ [8] (40\,GBd, 31.5\,km of fibre) and improved it with a
+  \textbf{decision-aligned loss}, \textbf{decision feedback} and a \textbf{custom FPGA engine}.
   \vspace{4mm}
 
   \noindent\kpi{bitsblue}{16$\times$}{lower BER, same complexity budget}\hfill
@@ -136,7 +136,7 @@
   \begin{itemize}
     \item Reproduce the paper's CNN from scratch: simulator and strong baselines.
     \item Improve accuracy at equal cost: loss, topology, decision feedback.
-    \item Deploy bit-exact integer models at 200\,MHz on a PYNQ-Z2.
+    \item Implement bit-exact integer models at 200\,MHz for a PYNQ-Z2.
   \end{itemize}
 }
 
@@ -148,7 +148,7 @@
     \begin{itemize}
       \item Paper [8]: CNN + HLS design, MSE loss, FIR baseline only.
       \item Decision feedback: textbook fix for nulls [9].
-      \item \textbf{Gap:} aligned loss, feedback baselines, real power.
+      \item \textbf{Gap:} MSE loss, no feedback baseline, estimated power.
     \end{itemize}
   \end{minipage}\hfill
   \begin{minipage}[c]{0.38\linewidth}
@@ -157,8 +157,10 @@
 }
 
 \block{Methodology}{
-  \fig{fig_method.pdf}{0.86\linewidth}
-  \figcap{Figure 1: (a) PYNQ-Z2 system: DMA at 100\,MHz, equalizer at 200\,MHz. (b) Each convolution layer is a pipeline that never stalls internally.}
+  \vspace{3mm}
+  \fig{fig_method.pdf}{0.94\linewidth}
+  \vspace{3mm}
+  \figcap{Figure 1: (a) PYNQ-Z2 system: DMA at 100\,MHz, equalizer at 200\,MHz. (b) One convolution layer.}
   \begin{enumerate}
     \item \textbf{Data:} physical IM/DD simulator; 2M train, 2M select, fresh 4M test.
     \item \textbf{Models:} 135 CNN topologies $\times$ 2 losses; FIR, Volterra, FFE+DFE, MLSE.
@@ -168,7 +170,7 @@
 }
 
 \block{Experimental Setup}{
-  {\centering
+  {\centering\renewcommand{\arraystretch}{1.3}
   \begin{tabular}{ll}
     \toprule
     \textbf{Parameter} & \textbf{Value / description} \\
@@ -185,15 +187,18 @@
 \column{0.5}
 
 \block{Results}{
-  \fig{fig_result1.pdf}{0.97\linewidth}
-  \figcap{Figure 2: The same budget buys 16$\times$ lower BER with cross-entropy and a 4-layer CNN. As deployed
-  integers, two feedback taps reach \sci{5.0}{7} (2 errors in 4M bits).}
+  \vspace{4mm}
+  \fig{fig_result1.pdf}{0.88\linewidth}
+  \vspace{3mm}
+  \figcap{Figure 2: 16$\times$ lower BER at the same budget; with feedback, \sci{5.0}{7} (2 errors in 4M bits).}
+  \vspace{8mm}
 
   \begin{center}
-  \setlength{\tabcolsep}{9pt}
+  \setlength{\tabcolsep}{8pt}
+  \renewcommand{\arraystretch}{1.12}
   \begin{tabular}{lcccccc}
     \toprule
-    \textbf{Design} (DSP build) & \textbf{BER} & \textbf{MHz} & \textbf{LUT} & \textbf{FF} & \textbf{DSP} & \textbf{Power} \\
+    \textbf{Design} (DSP build) & \textbf{BER} & \textbf{Fmax} & \textbf{LUT} & \textbf{FF} & \textbf{DSP} & \textbf{Dyn. P} \\
     \midrule
     Paper's CNN, 8 bit     & \sci{4.96}{4} & 187.9 & 7,056 & 11,543 & 42 & 0.302\,W \\
     Ours, CNN, 6 bit       & \sci{2.18}{5} & 207.2 & 3,957 & 6,393  & 45 & 0.259\,W \\
@@ -203,31 +208,33 @@
     \bottomrule
   \end{tabular}
   \end{center}
-  \figcap{Table 1: Same engine, same XC7Z020: 23--44\,\% fewer LUTs. Dynamic power at 200\,MHz from simulated activity.
-  All six routed builds are bit-exact at gate level.}
+  \vspace{-2mm}
+  \figcap{Table 1: Same engine and XC7Z020; Fmax in MHz; dynamic power at 200\,MHz from simulated activity.}
+  \vspace{8mm}
 
-  \fig{fig_result2.pdf}{0.97\linewidth}
-  \figcap{Figure 3: BER over nine channel conditions (best per row outlined; multiplications per symbol in brackets).
-  At 31.5\,km and $\ge$\,16\,dB a 59-multiplication FFE + DFE wins; the CNN + DFE wins on the hardest channels.}
+  \fig{fig_result2.pdf}{0.86\linewidth}
+  \vspace{3mm}
+  \figcap{Figure 3: BER in nine channel conditions (darker = lower; best per row outlined; mult./symbol in brackets).}
 }
 
 \block{Discussion}{
   \begin{itemize}
-    \item \textbf{Finding:} decision feedback, absent from the paper, is the strongest single idea: it fills the
-          fading nulls that no feed-forward equalizer can.
-    \item \textbf{Finding:} the loss and the topology work together: the 4-layer CNN fails with MSE and is the best
-          with cross-entropy.
-    \item \textbf{Limitation:} at 24\,dB a 27-multiplication FFE + DFE matches our \sci{5.0}{7}; the CNN's
-          case is robustness on harder channels. All data are simulated, and \sci{5.0}{7} rests on 2 errors
-          (still $\ge$\,270$\times$ better at 95\,\% confidence).
+    \item \textbf{Strength -- optimised FPGA engine:} closes 200\,MHz in the PYNQ-Z2 system, 136 $\to$ 45 DSPs
+          through multiplier sharing and two channels per DSP, and every routed build verified bit-exact.
+    \item \textbf{ML improvement -- cross-entropy instead of MSE} (4-layer CNN): 16$\times$ lower BER than the
+          paper's CNN (\sci{2.7}{5} vs \sci{4.4}{4}); with MSE the same CNN gets \sci{9.4}{4}.
+    \item \textbf{Model and hardware improvement -- decision feedback:} \sci{5.0}{7} at 8 bits, 22$\times$ below our
+          CNN alone and $\approx$\,1000$\times$ below the paper's; a look-ahead keeps 200\,MHz.
+    \item \textbf{Limitation:} at 31.5\,km and $\ge$\,16\,dB a 59-multiplication FFE + DFE does better; all data are
+          simulated.
   \end{itemize}
 }
 
 \block{Conclusion and Future Work}{
   \begin{itemize}
-    \item At the same 8 bits, our CNN + DFE has about 1000$\times$ lower BER than the paper's CNN and runs at
-          200\,MHz on a PYNQ-Z2 with 23\,\% fewer LUTs.
-    \item The paper's multiplication count is low by a factor of 2; multiplier sharing and two channels per DSP cut 136 to 45 DSPs.
+    \item At the same 8 bits, our CNN + DFE has about 1000$\times$ lower BER than the paper's CNN and closes
+          timing at 200\,MHz in a PYNQ-Z2 system with 23\,\% fewer LUTs.
+    \item The paper's multiplication count is low by a factor of 2, and it has no decision-feedback baseline.
     \item \textbf{Future work:} measure BER and power on the board, train on the lab's fibre kit, a parallel
           look-ahead DFE towards 40\,GBd, and a LUT-native KAN equalizer [15].
   \end{itemize}
@@ -241,7 +248,8 @@
     \item[{[3]}] G.~J. Meslener, ``Chromatic dispersion induced distortion of modulated monochromatic light employing
           direct detection,'' \emph{IEEE J. Quantum Electron.}, vol.~20, no.~10, pp.~1208--1216, 1984.
     \item[{[8]}] J. Ney \emph{et al.}, ``CNN-based equalization for communications: Achieving gigabit throughput with
-          a flexible FPGA hardware architecture,'' arXiv:2405.02323, 2024.
+          a flexible FPGA hardware architecture,'' \emph{Int.\ J. Parallel Program.}, vol.~54, no.~4, 2026
+          (arXiv:2405.02323).
     \item[{[9]}] J.~G. Proakis and M. Salehi, \emph{Digital Communications}, 5th ed., McGraw-Hill, 2008.
     \item[{[15]}] R. Fischer \emph{et al.}, ``Non-linear equalization in 112 Gb/s PONs using Kolmogorov-Arnold
           networks,'' in \emph{Proc.\ OFC}, 2025.
@@ -250,10 +258,10 @@
 }
 \subcolumn{0.38}
 \block{Report and Code}{
+  {\centering\includegraphics[width=0.45\linewidth]{qr_repo.pdf}\par
+   {\small Code on GitHub}\par\vspace{4mm}}
   {\small\raggedright
-  \textbf{Report:} MLEE\_Report.pdf (numbers and reference numbers match this poster)\par\vspace{3mm}
-  \textbf{Code:} github.com/JSpectre20/ mlee-cnn-equalizer (private; access on request)\par\vspace{3mm}
-  \textbf{Contact:} [email]\par\vspace{3mm}
+  \textbf{Contact:} f20240412@\allowbreak pilani.bits-pilani.ac.in\par\vspace{3mm}
   \textbf{Thanks:} Dr. Ritesh Vyas}
 }
 \end{subcolumns}
