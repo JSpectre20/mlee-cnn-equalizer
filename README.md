@@ -21,6 +21,8 @@ gate-level switching activity at 200 MHz.
 - About 1000x lower BER at the same 8 bits with decision feedback (2 errors in 3,997,440 bits).
 - The deployed core closes 200 MHz in the full PYNQ-Z2 system (PS7 + AXI DMA at 100 MHz, core at 200 MHz).
 - All six routed builds are bit-exact against the integer golden model in gate-level simulation.
+- On the PYNQ-Z2 board the deployed core reproduces the golden model bit for bit over the 4M-symbol test set
+  (2 bit errors, as simulated) at 100 MSym/s.
 
 The full write-up is [report/MLEE_Report.pdf](report/MLEE_Report.pdf); the poster is
 [poster/MLEE_Poster.pdf](poster/MLEE_Poster.pdf).
@@ -83,5 +85,9 @@ Git tags `v1.0-cnn-200mhz` and `v2.0-cnn-dfe-200mhz` mark the two hardware versi
 2. Copy `cnn_eq.bit`, `cnn_eq.hwh`, `board_vectors.npz`, `cnn_eq_pynq.py` and `cnn_eq_pynq.ipynb` into one folder on
    the board (Jupyter upload) and run the notebook, or `sudo python3 cnn_eq_pynq.py` in a terminal.
 3. A good run reports the core ID `0x4E455131`, 0 output mismatches against the golden model, 2 bit errors in
-   3,997,440 bits, exact frame and beat counters, and a core throughput near 97.5 MSym/s. Results are written to
+   3,997,440 bits, exact frame and beat counters, and a core throughput near 100 MSym/s. Results are written to
    `board_results.json`.
+
+Measured on our PYNQ-Z2 (PYNQ 3.1.1), in `equalizer/board/results/`: bit-exact (0 mismatches in 4M outputs), 2 bit
+errors in 3,997,440 bits (BER 5.0e-7, identical to the golden model), counters exact, core 8,003,060 cycles per pass =
+0.9996 samples per clock = 99.96 MSym/s at 200 MHz, 72.4 MSym/s end to end including Python and DMA set-up.

@@ -1,0 +1,39 @@
+{
+  "pynq_version": "3.1.1",
+  "core": {
+    "ID": "0x4E455131",
+    "SHAPE": "0x04090304",
+    "NPARAM": 336
+  },
+  "frames": 20,
+  "symbols_per_frame": 200000,
+  "bit_exact": true,
+  "output_mismatches": 0,
+  "bit_errors": 2,
+  "bits_counted": 3997440,
+  "ber": 5.003202049311559e-07,
+  "golden_bit_errors": 2,
+  "golden_bits": 3997440,
+  "counters_pass1": {
+    "FRAMES": 20,
+    "BUSY_CYC": 8003060,
+    "IN_BEATS": 8000000,
+    "OUT_BEATS": 4000000
+  },
+  "counters_pass2": {
+    "FRAMES": 20,
+    "BUSY_CYC": 8003060,
+    "IN_BEATS": 8000000,
+    "OUT_BEATS": 4000000
+  },
+  "counters_ok": true,
+  "wall_s_per_pass": [
+    0.05692807399998401,
+    0.05531692899995733,
+    0.05523828300005107
+  ],
+  "throughput_msym_s_wall": 72.41354695974714,
+  "core_busy_s": 0.0400153,
+  "throughput_msym_s_core": 99.96176462503094,
+  "samples_per_core_cycle": 0.9996176462503092
+}

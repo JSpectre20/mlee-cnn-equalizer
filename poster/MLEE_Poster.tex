@@ -225,8 +225,8 @@
 
 \block{Discussion}{
   \begin{itemize}
-    \item \textbf{Strength -- optimised FPGA engine:} runs at 200\,MHz on the PYNQ-Z2 board, 136 $\to$ 45 DSPs
-          through multiplier sharing and two channels per DSP, and every routed build verified bit-exact.
+    \item \textbf{Strength -- optimised FPGA engine:} 136 $\to$ 45 DSPs; on the PYNQ-Z2 board it matches the
+          golden model bit for bit over 4M symbols (same 2 errors) at 100\,MSym/s.
     \item \textbf{ML improvement -- cross-entropy instead of MSE} (4-layer CNN): 16$\times$ lower BER than the
           paper's CNN (\sci{2.7}{5} vs \sci{4.4}{4}); with MSE the same CNN gets \sci{9.4}{4}.
     \item \textbf{Model and hardware improvement -- decision feedback:} \sci{5.0}{7} at 8 bits, 22$\times$ below our
