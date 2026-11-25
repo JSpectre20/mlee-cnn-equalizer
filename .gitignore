@@ -61,3 +61,6 @@ poster/*.py
 poster/*.drawio
 poster/*.png
 !poster/bits_logo.png
+
+# third-party papers (kept locally, linked in the README)
+papers/

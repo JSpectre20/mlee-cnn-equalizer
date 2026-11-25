@@ -47,7 +47,7 @@ equalizer/                 simulation, learning and hardware
   board/                   PYNQ-Z2 driver (cnn_eq_pynq.py) and notebook for the on-board run
 report/                    the project report (docx + pdf)
 poster/                    A3 poster (the template's A0 layout scaled to A3): LaTeX source, figures (PDF), the PDF
-papers/                    the replicated paper and the cited demonstrator paper (PDF)
+slides/                    viva slides (pptx)
 Project submission templates/   course templates
 ```
 
@@ -91,3 +91,27 @@ Git tags `v1.0-cnn-200mhz` and `v2.0-cnn-dfe-200mhz` mark the two hardware versi
 Measured on our PYNQ-Z2 (PYNQ 3.1.1), in `equalizer/board/results/`: bit-exact (0 mismatches in 4M outputs), 2 bit
 errors in 3,997,440 bits (BER 5.0e-7, identical to the golden model), counters exact, core 8,003,060 cycles per pass =
 0.9996 samples per clock = 99.96 MSym/s at 200 MHz, 72.4 MSym/s end to end including Python and DMA set-up.
+
+## Papers
+
+The cited papers are on arXiv and are not redistributed here:
+
+- J. Ney et al., CNN-based equalization for communications (the replicated paper), [arXiv:2405.02323](https://arxiv.org/abs/2405.02323)
+- J. Ney et al., Real-time FPGA demonstrator of ANN-based equalization, [arXiv:2402.15288](https://arxiv.org/abs/2402.15288)
+- S. K. Esser et al., Learned step size quantization, [arXiv:1902.08153](https://arxiv.org/abs/1902.08153)
+- R. Fischer et al., Non-linear equalization in 112 Gb/s PONs using Kolmogorov-Arnold networks, [arXiv:2411.19631](https://arxiv.org/abs/2411.19631)
+
+## License
+
+Copyright (c) 2026 Shreyansh Jain.
+
+- **Code, RTL, scripts, data and results:** [PolyForm Noncommercial 1.0.0](LICENSE). You may use, study and modify
+  them for noncommercial purposes (personal study, research, teaching) and must pass on the license and the
+  copyright notice. Commercial use needs written permission.
+- **Report, poster and slides** (`report/`, `poster/`, `slides/`): [CC BY-NC-ND 4.0](LICENSE-docs). You may share
+  them unchanged, with credit, for noncommercial purposes.
+- `Project submission templates/` is course material and is not covered by either license.
+
+This is coursework for EEE G513 at BITS Pilani. Do not submit any part of it as your own work; cite it as
+Shreyansh Jain, "Low-Complexity Neural Network Equalization for Optical Fibre Communication on FPGA", 2026,
+https://github.com/JSpectre20/mlee-cnn-equalizer.
